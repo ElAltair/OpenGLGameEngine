@@ -1,5 +1,7 @@
 #include "Program.h"
 #include "Shader.h"
+#include "Light.h"
+#include "Material.h"
 
 
 Program::Program(const string &v,const  string &f) :VertexShaderName(v), FragmentShaderName(f)
@@ -98,4 +100,42 @@ void Program::setUniformData(const GLchar* name, glm::mat4& matrix)
 {
 	GLuint location = glGetUniformLocation(ProgramNameGL, name);
 	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
+/*
+void Program::setLight(Light& light)
+{
+	glm::vec3 ambientLight = light.getAmbient();
+	glm::vec3 diffuseLight = light.getDiffuse();
+	glm::vec3 specularLight = light.getSpecular();
+	glm::vec3 lightPosition = light.getPostition();
+	setUniformData("light.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+	setUniformData("light.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+	setUniformData("light.specular", specularLight.x, specularLight.y, specularLight.z);
+	setUniformData("light.position", lightPosition.x, lightPosition.y, lightPosition.z);
+
+}
+*/
+void Program::setLight(DirectionalLight& light)
+{
+	glm::vec3 ambientLight = light.getAmbient();
+	glm::vec3 diffuseLight = light.getDiffuse();
+	glm::vec3 specularLight = light.getSpecular();
+	glm::vec3 lightDirection = light.getDirection();
+	setUniformData("light.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+	setUniformData("light.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+	setUniformData("light.specular", specularLight.x, specularLight.y, specularLight.z);
+	setUniformData("light.direction", lightDirection.x, lightDirection.y, lightDirection.z);
+
+}
+void Program::setMaterial(Material& material)
+{
+	glm::vec3 ambientLight = material.getAmbient();
+	glm::vec3 diffuseLight = material.getDiffuse();
+	glm::vec3 specularLight = material.getSpecular();
+	setUniformData("material.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+	setUniformData("material.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+	setUniformData("material.specular", specularLight.x, specularLight.y, specularLight.z);
+	setUniformData("material.shininess", material.getShininess());
+
 }

@@ -25,6 +25,12 @@
     <Filter Include="Shaders\FragmentShader">
       <UniqueIdentifier>{b363be12-30f8-49f4-b17f-9d78af296a84}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Material System">
+      <UniqueIdentifier>{c59ebf14-3858-44e7-8fc5-f44540386f13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LightSystem">
+      <UniqueIdentifier>{db329b0c-17b5-4ff6-b6b2-f220ecffb3b9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -39,6 +45,12 @@
     <ClCompile Include="ProgramManager.cpp">
       <Filter>Shader System</Filter>
     </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Material System</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>LightSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -49,6 +61,12 @@
     </ClInclude>
     <ClInclude Include="ProgramManager.h">
       <Filter>Shader System</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Material System</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>LightSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

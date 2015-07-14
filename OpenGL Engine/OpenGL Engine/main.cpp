@@ -10,6 +10,8 @@
 #include <iostream>
 #include"Program.h"
 #include"ProgramManager.h"
+#include "Light.h"
+#include "Material.h"
 
 int WindowWidth = 1600;
 int WindowHeight = 900;
@@ -404,6 +406,8 @@ int main(void)
 		getchar();
 		return -1;
 	}
+	
+
 
 
 	GLuint textures[2];
@@ -496,17 +500,22 @@ int main(void)
 		GLfloat radius = 50.0f;
 		glm::vec3 lightPosition = glm::vec3(0.0f, 7.0f, -5.0f);
 		
-		mainProgram->setUniformData("light.ambient", 0.2f, 0.2f, 0.2f);
-		mainProgram->setUniformData("light.diffuse", 0.5f, 0.5f, 0.5f);
-		mainProgram->setUniformData("light.specular",1.0f, 1.0f, 1.0f);
+		glm::vec3 ambientMaterial(1.0f, 0.5f, 0.31f);
+		glm::vec3 diffuseMaterial(1.0f, 0.5f, 0.31f);
+		glm::vec3 specularMaterial(1.0f, 0.5f, 0.31f);
+		Material newMaterial(ambientMaterial, diffuseMaterial, specularMaterial, 32.0f);
+		mainProgram->setMaterial(newMaterial);
+		
+		glm::vec3 ambientLight(0.2f, 0.2f, 0.2f);
+		glm::vec3 diffuseLight(0.5f, 0.5f, 0.5f);
+		glm::vec3 specularLight(1.0f, 1.0f, 1.0f);
+		glm::vec3 lightDirection(-0.2f, 1.0f, -0.3f);
+		DirectionalLight newLight(ambientLight, diffuseLight, specularLight, lightDirection);
+		
+		mainProgram->setLight(newLight); 
 		mainProgram->setUniformData("light.direction",-0.2f,-1.0f,-0.3f);
 
-		mainProgram->setUniformData("material.ambient",1.0f, 0.5f, 0.31f);
-		mainProgram->setUniformData("material.diffuse",1.0f, 0.5f, 0.31f);
-		mainProgram->setUniformData("material.specular",0.5f, 0.5f, 0.5f);
-		mainProgram->setUniformData("material.shininess",32.0f);
 
-		mainProgram->setUniformData("lightPos", lightPosition.x, lightPosition.y, lightPosition.z);
 		mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
 

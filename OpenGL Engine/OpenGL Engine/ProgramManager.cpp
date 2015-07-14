@@ -12,6 +12,7 @@ ProgramManager::ProgramManager()
 
 ProgramManager::~ProgramManager()
 {
+	std::cout << " Destruction \n" << std::endl;
 	for (int i = 0; i < programs.size(); ++i)
 	{
 		delete programs.at(i);

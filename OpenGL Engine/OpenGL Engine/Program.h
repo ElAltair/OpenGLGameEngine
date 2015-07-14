@@ -7,6 +7,9 @@
 using std::string;
 
 class Shader;
+class Material;
+class Light;
+class DirectionalLight;
 class Program
 {
 public:
@@ -24,6 +27,8 @@ public:
 	void setUniformData(const GLchar* name,GLfloat f1,GLfloat f2);
 	void setUniformData(const GLchar* name,GLfloat f1, GLfloat f2, GLfloat f3);
 	void setUniformData(const GLchar* name, glm::mat4& matrix);
+	void setMaterial(Material& material);
+	void setLight(DirectionalLight& light);
 	
 
 	~Program();
@@ -34,6 +39,7 @@ private:
 	Shader* fragmentShader;
 	string VertexShaderName;
 	string FragmentShaderName;
+
 };
 #endif
 
