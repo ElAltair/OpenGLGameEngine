@@ -8,6 +8,7 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 #include <iostream>
+#include"Program.h"
 
 int WindowWidth = 1600;
 int WindowHeight = 900;
@@ -272,7 +273,9 @@ int main(void)
 	glfwSetScrollCallback(window, mouse_scrollback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+
 	glViewport(0, 0, WindowWidth, WindowHeight);
+
 
 
 	GLfloat vertices[] = {
@@ -390,6 +393,7 @@ int main(void)
 	glBindVertexArray(0);
 
 
+	/*
 	GLuint vertexShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -461,6 +465,14 @@ int main(void)
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glDeleteShader(lampShader);
+	*/
+	
+	Program positionProg("position.vs", "light.fs");
+	if (!positionProg.linkProgram())
+		return -1;
+	Program lightProg("position.vs", "lamp.fs");
+	if (!lightProg.linkProgram())
+		return -1;
 
 	GLuint textures[2];
 	glGenTextures(2, textures);
@@ -521,6 +533,8 @@ int main(void)
 
 
 
+	GLint shaderProgram = positionProg.returnProgramName();
+	GLint lampProgram = lightProg.returnProgramName();
 	while (!glfwWindowShouldClose(window))
 	{
 		// Check and call events
@@ -530,7 +544,12 @@ int main(void)
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glUseProgram(shaderProgram);
+		//glUseProgram(shaderProgram);
+		int i =0;
+		positionProg.use();
+		if (i==0)
+		
+		++i;
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[0]);
@@ -542,16 +561,13 @@ int main(void)
 
 		GLfloat radius = 50.0f;
 		glm::vec3 lightPosition = glm::vec3(0.0f, 7.0f, -5.0f);
-		//glm::vec3 lightPosition = glm::vec3(radius * sin(glfwGetTime()), 3.0f,radius * cos(glfwGetTime()));
-		GLuint objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
-		GLuint lightColorLoc = glGetUniformLocation(shaderProgram, "lightColor");
-		GLuint lightPositionLocation = glGetUniformLocation(shaderProgram, "lightPos");
-		GLuint viewPositionLocation = glGetUniformLocation(shaderProgram, "viewPos");
-		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
-		glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
-		glUniform3f(lightPositionLocation, lightPosition.x, lightPosition.y, lightPosition.z);
-		glUniform3f(viewPositionLocation, cameraPos.x, cameraPos.y, cameraPos.z);
+	
 
+
+		positionProg.setUniformData("objectColor", 1.0f, 0.5f, 0.31f);
+		positionProg.setUniformData("lightColor", 1.0f,1.0f,1.0f);
+		positionProg.setUniformData("lightPos", lightPosition.x, lightPosition.y, lightPosition.z);
+		positionProg.setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
 
 		//viewMatrix = glm::mat4();
@@ -563,16 +579,12 @@ int main(void)
 		//viewMatrix = glm::rotate(viewMatrix,(GLfloat)(glm::radians(10.0f)*glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
 		projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
 
-		GLint modelMatrixLocation = glGetUniformLocation(shaderProgram, "model");
-		GLint viewMatrixLocation = glGetUniformLocation(shaderProgram, "view");
-		GLint projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projection");
 
-		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
+		positionProg.setUniformData("view", viewMatrix);
+		positionProg.setUniformData("projection", projectionMatrix);
 
 		glBindVertexArray(vao);
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+		positionProg.setUniformData("model", modelMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		glBindVertexArray(0);
@@ -587,19 +599,18 @@ int main(void)
 		glBindVertexArray(0);
 		*/
 
-		glUseProgram(lampProgram);
+		//glUseProgram(lampProgram);
+		lightProg.use();
 
-		modelMatrixLocation = glGetUniformLocation(lampProgram, "model");
-		viewMatrixLocation = glGetUniformLocation(lampProgram, "view");
-		projectionMatrixLocation = glGetUniformLocation(lampProgram, "projection");
 
-		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-		glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+		lightProg.setUniformData("view", viewMatrix);
+		lightProg.setUniformData("projection", projectionMatrix);
 
 		modelMatrix = glm::mat4();
 		modelMatrix = glm::translate(modelMatrix, lightPosition);
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+		lightProg.setUniformData("model", modelMatrix);
+		
 		glBindVertexArray(lampVao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
