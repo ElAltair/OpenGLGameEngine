@@ -9,6 +9,7 @@
 #include <gtc/type_ptr.hpp>
 #include <iostream>
 #include"Program.h"
+#include"ProgramManager.h"
 
 int WindowWidth = 1600;
 int WindowHeight = 900;
@@ -393,86 +394,17 @@ int main(void)
 	glBindVertexArray(0);
 
 
-	/*
-	GLuint vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-
-	GLint success;
-	GLchar infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	GLuint fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	GLuint lampShader;
-	lampShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(lampShader, 1, &lampFragmentShaderSource, NULL);
-
-	glCompileShader(fragmentShader);
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-	glCompileShader(lampShader);
-	glGetShaderiv(lampShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(lampShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-
-	GLuint shaderProgram;
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::PROGRAAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-
-	GLuint lampProgram;
-	lampProgram = glCreateProgram();
-	glAttachShader(lampProgram, vertexShader);
-	glAttachShader(lampProgram, lampShader);
-	glLinkProgram(lampProgram);
-
-	glGetProgramiv(lampProgram, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(lampProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::PROGRAAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-	glDeleteShader(lampShader);
-	*/
 	
-	Program positionProg("position.vs", "light.frag");
-	if (!positionProg.linkProgram())
+	
+	// Create manager, that initialize and create all programs
+	ProgramManager manager;
+	manager.readConfig();
+	if (!manager.createPrograms())
+	{
+		getchar();
 		return -1;
-	Program lightProg("position.vs", "lamp.frag");
-	if (!lightProg.linkProgram())
-		return -1;
+	}
+
 
 	GLuint textures[2];
 	glGenTextures(2, textures);
@@ -533,8 +465,14 @@ int main(void)
 
 
 
-	GLint shaderProgram = positionProg.returnProgramName();
-	GLint lampProgram = lightProg.returnProgramName();
+	
+	// Get programs from manager by name
+	Program* mainProgram = manager.returnProgram("mainProgram");
+	Program* lightProgram = manager.returnProgram("lightProgram");
+	/// Get GLint program id from Program
+	GLint shaderProgram = mainProgram->returnProgramNameID();
+	GLint lampProgram = lightProgram->returnProgramNameID();
+	
 	while (!glfwWindowShouldClose(window))
 	{
 		// Check and call events
@@ -544,12 +482,8 @@ int main(void)
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//glUseProgram(shaderProgram);
-		int i =0;
-		positionProg.use();
-		if (i==0)
+		mainProgram->use();
 		
-		++i;
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[0]);
@@ -564,10 +498,10 @@ int main(void)
 	
 
 
-		positionProg.setUniformData("objectColor", 1.0f, 0.5f, 0.31f);
-		positionProg.setUniformData("lightColor", 1.0f,1.0f,1.0f);
-		positionProg.setUniformData("lightPos", lightPosition.x, lightPosition.y, lightPosition.z);
-		positionProg.setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
+		mainProgram->setUniformData("objectColor", 1.0f, 0.5f, 0.31f);
+		mainProgram->setUniformData("lightColor", 1.0f,1.0f,1.0f);
+		mainProgram->setUniformData("lightPos", lightPosition.x, lightPosition.y, lightPosition.z);
+		mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
 
 		//viewMatrix = glm::mat4();
@@ -580,11 +514,11 @@ int main(void)
 		projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
 
 
-		positionProg.setUniformData("view", viewMatrix);
-		positionProg.setUniformData("projection", projectionMatrix);
+		mainProgram->setUniformData("view", viewMatrix);
+		mainProgram->setUniformData("projection", projectionMatrix);
 
 		glBindVertexArray(vao);
-		positionProg.setUniformData("model", modelMatrix);
+		mainProgram->setUniformData("model", modelMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		glBindVertexArray(0);
@@ -599,17 +533,15 @@ int main(void)
 		glBindVertexArray(0);
 		*/
 
-		//glUseProgram(lampProgram);
-		lightProg.use();
-
-
-		lightProg.setUniformData("view", viewMatrix);
-		lightProg.setUniformData("projection", projectionMatrix);
+		lightProgram->use();
+ 
+		lightProgram->setUniformData("view", viewMatrix);
+		lightProgram->setUniformData("projection", projectionMatrix);
 
 		modelMatrix = glm::mat4();
 		modelMatrix = glm::translate(modelMatrix, lightPosition);
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
-		lightProg.setUniformData("model", modelMatrix);
+		lightProgram->setUniformData("model", modelMatrix);
 		
 		glBindVertexArray(lampVao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);

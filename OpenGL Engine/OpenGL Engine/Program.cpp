@@ -4,35 +4,23 @@
 
 Program::Program(const string &v,const  string &f) :VertexShaderName(v), FragmentShaderName(f)
 {
+
+}
+
+bool Program::loadShaders()
+{
 	vertexShader = new Shader(VertexShaderName, GL_VERTEX_SHADER);
-	vertexShader->loadSource();
-	vertexShader->compileShader();
 	fragmentShader = new Shader(FragmentShaderName, GL_FRAGMENT_SHADER);
-	fragmentShader->loadSource();
-	fragmentShader->compileShader();
-}
+	if (!vertexShader->loadSource())
+		return false;
+	if (!vertexShader->compileShader())
+		return false;
 
-Program::Program()
-{
-
-}
-
-void Program::addShader(const string& shaderSource, int type)
-{
-	if (type == GL_VERTEX_SHADER)
-	{
-		vertexShader = new Shader(shaderSource, type);
-		vertexShader->loadSource();
-		vertexShader->compileShader();
-	}
-	else
-	{
-
-		fragmentShader = new Shader(shaderSource, type);
-		fragmentShader->loadSource();
-		fragmentShader->compileShader();
-	}
-
+		if (!fragmentShader->loadSource())
+			return false;
+		if (!fragmentShader->compileShader())
+			return false;
+		return true;
 }
 
 Program::~Program()
@@ -53,16 +41,31 @@ bool Program::linkProgram(void)
 	if (!success)
 	{
 		glGetProgramInfoLog(ProgramNameGL,512, NULL, ProgramInfoLog);
-		std::cout << "PROGRAM::" << ProgramName << "LINK ERROR\n" << ProgramInfoLog << std::endl;
+		std::cout << "\tERROR :: PROGRAM :: " << ProgramName << "LINKING FAILED\n" << ProgramInfoLog << std::endl << std::endl;
 		return false;
 	}
-	std::cout << "PROGRAM::" << ProgramName << "LINK COMPLETED \n";
+	std::cout << "PROGRAM :: " << ProgramName << " LINKING COMPLETED \n" << std::endl << std:: endl;
+	vertexShader->deleteShader();
+	delete vertexShader;
+	fragmentShader->deleteShader();
+	delete fragmentShader;
 	return true;
 }
 
-GLint Program::returnProgramName(void)
+GLint Program::returnProgramNameID(void)
 {
 	return ProgramNameGL;
+}
+
+string Program::returnProgramName(void)
+{
+	return ProgramName;
+}
+
+
+void Program::setProgramName(string name)
+{
+	ProgramName = name;
 }
 
 void Program::use(void)

@@ -14,12 +14,13 @@ public:
 	bool loadSource(void);
 	bool compileShader(void);
 	GLint returnShaderName(void);
+	void deleteShader(void);
 	//void attachShader(Program* pr);
 
 
 private:
 	string ShaderName;
-	GLuint ShaderNameGL;
+	GLuint ShaderNameID;
 	string source;
 	int ShaderType;
 };

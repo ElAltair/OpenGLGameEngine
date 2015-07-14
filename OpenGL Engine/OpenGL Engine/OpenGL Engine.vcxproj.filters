@@ -30,12 +30,18 @@
     <ClCompile Include="Program.cpp">
       <Filter>Shader System</Filter>
     </ClCompile>
+    <ClCompile Include="ProgramManager.cpp">
+      <Filter>Shader System</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
       <Filter>Shader System</Filter>
     </ClInclude>
     <ClInclude Include="Program.h">
+      <Filter>Shader System</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgramManager.h">
       <Filter>Shader System</Filter>
     </ClInclude>
   </ItemGroup>
@@ -47,6 +53,9 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\Shaders\light.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\ProgramManager.conf">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

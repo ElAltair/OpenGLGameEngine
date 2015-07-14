@@ -8,55 +8,59 @@ Shader::Shader(const string& str,int type) : ShaderName(str)
 bool Shader::loadSource(void)
 {
 	std::ifstream file;
-	string filePath = "../Shaders/" + ShaderName;
+	string filePath;
+
+	if (ShaderType == GL_VERTEX_SHADER)
+	filePath = "../Shaders/VertexShader/" + ShaderName;
+	else if (ShaderType == GL_FRAGMENT_SHADER)
+	filePath = "../Shaders/FragmentShader/" + ShaderName;
+
 	file.open(filePath);
 	
 	if (file.is_open())
 	{
-		std::cout << "File is opened" << std::endl;
+		std::cout << "SHADER :: " << ShaderName << " :: SOURCE LOADING COMPLETE" << std::endl << std::endl;
 	}
 	else
 	{
-		std::cout << "Error while openning shader source" << std::endl;
+		std::cout << "\tERROR :: SHADER :: " << ShaderName << ":: SOURCE LOADING FAILED" << std::endl << std::endl;
 		return false;
 	}
 	
-	std::cout << "Name = " << ShaderName << std::endl;
 	std::stringstream ShaderStream;
 	ShaderStream << file.rdbuf();
 	source = ShaderStream.str();
 	file.close();
+	return true;
 }
 
 bool Shader::compileShader(void)
 {
 	const GLchar* ShaderSourceGL = source.c_str();
-	ShaderNameGL = glCreateShader(ShaderType);
-	glShaderSource(ShaderNameGL, 1, &ShaderSourceGL, NULL);
-	glCompileShader(ShaderNameGL);
+	ShaderNameID = glCreateShader(ShaderType);
+	glShaderSource(ShaderNameID, 1, &ShaderSourceGL, NULL);
+	glCompileShader(ShaderNameID);
 	
 	GLint success;
-	glGetShaderiv(ShaderNameGL, GL_COMPILE_STATUS, &success);
+	glGetShaderiv(ShaderNameID, GL_COMPILE_STATUS, &success);
 	GLchar infoLog[512];
 	if (!success)
 	{
-		glGetShaderInfoLog(ShaderNameGL, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::" << ShaderName<< "COMPILATION_FAILED\n" << infoLog << std::endl;
+		glGetShaderInfoLog(ShaderNameID, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER:: " << ShaderName << " COMPILATION_FAILED\n " << infoLog << std::endl << std::endl;
 		return false;
 	}
 	else
-		std::cout << "SHADER::" << ShaderName << "::COMPILATION_COMPLITED\n";
+		std::cout << "SHADER:: " << ShaderName << " ::COMPILATION_COMPLITED\n" << std::endl << std::endl;
 	return true;
 }
 
 GLint Shader::returnShaderName(void)
 {
-	return ShaderNameGL;
+	return ShaderNameID;
 }
 
-/*
-void Shader::attachShader(Program* pr)
+void Shader::deleteShader(void)
 {
-	glAttachShader(pr->returnProgramName(), ShaderNameGL);
+	glDeleteShader(ShaderNameID);
 }
-*/
