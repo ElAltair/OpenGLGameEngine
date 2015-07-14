@@ -19,6 +19,12 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{0eda9f25-9643-4029-a8f0-3b0d0c98f2c7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\VertexShader">
+      <UniqueIdentifier>{eef5d3b1-f5e4-41d2-b6c7-f52a3cea0fcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\FragmentShader">
+      <UniqueIdentifier>{b363be12-30f8-49f4-b17f-9d78af296a84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -46,17 +52,17 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Shaders\position.vs">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\Shaders\lamp.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\Shaders\light.frag">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\Shaders\ProgramManager.conf">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\FragmentShader\lamp.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
+    <None Include="..\Shaders\FragmentShader\light.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
+    <None Include="..\Shaders\VertexShader\position.vs">
+      <Filter>Shaders\VertexShader</Filter>
     </None>
   </ItemGroup>
 </Project>

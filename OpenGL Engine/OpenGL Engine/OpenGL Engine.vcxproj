@@ -81,10 +81,10 @@
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Shaders\lamp.frag" />
-    <None Include="..\Shaders\light.frag" />
-    <None Include="..\Shaders\position.vs" />
+    <None Include="..\Shaders\FragmentShader\lamp.frag" />
+    <None Include="..\Shaders\FragmentShader\light.frag" />
     <None Include="..\Shaders\ProgramManager.conf" />
+    <None Include="..\Shaders\VertexShader\position.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

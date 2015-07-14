@@ -12,6 +12,10 @@ ProgramManager::ProgramManager()
 
 ProgramManager::~ProgramManager()
 {
+	for (int i = 0; i < programs.size(); ++i)
+	{
+		delete programs.at(i);
+	}
 }
 
 bool ProgramManager::readConfig(void)
