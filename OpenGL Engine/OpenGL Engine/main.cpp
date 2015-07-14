@@ -495,11 +495,17 @@ int main(void)
 
 		GLfloat radius = 50.0f;
 		glm::vec3 lightPosition = glm::vec3(0.0f, 7.0f, -5.0f);
-	
+		
+		mainProgram->setUniformData("light.ambient", 0.2f, 0.2f, 0.2f);
+		mainProgram->setUniformData("light.diffuse", 0.5f, 0.5f, 0.5f);
+		mainProgram->setUniformData("light.specular",1.0f, 1.0f, 1.0f);
+		mainProgram->setUniformData("light.direction",-0.2f,-1.0f,-0.3f);
 
+		mainProgram->setUniformData("material.ambient",1.0f, 0.5f, 0.31f);
+		mainProgram->setUniformData("material.diffuse",1.0f, 0.5f, 0.31f);
+		mainProgram->setUniformData("material.specular",0.5f, 0.5f, 0.5f);
+		mainProgram->setUniformData("material.shininess",32.0f);
 
-		mainProgram->setUniformData("objectColor", 1.0f, 0.5f, 0.31f);
-		mainProgram->setUniformData("lightColor", 1.0f,1.0f,1.0f);
 		mainProgram->setUniformData("lightPos", lightPosition.x, lightPosition.y, lightPosition.z);
 		mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
@@ -536,6 +542,8 @@ int main(void)
 		lightProgram->use();
  
 		lightProgram->setUniformData("view", viewMatrix);
+		
+
 		lightProgram->setUniformData("projection", projectionMatrix);
 
 		modelMatrix = glm::mat4();

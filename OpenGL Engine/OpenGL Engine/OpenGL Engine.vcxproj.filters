@@ -64,5 +64,8 @@
     <None Include="..\Shaders\VertexShader\position.vs">
       <Filter>Shaders\VertexShader</Filter>
     </None>
+    <None Include="..\Shaders\FragmentShader\directionalLight.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
   </ItemGroup>
 </Project>
