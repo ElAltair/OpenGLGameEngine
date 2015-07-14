@@ -78,6 +78,11 @@
     <ClInclude Include="Program.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\lamp.frag" />
+    <None Include="..\Shaders\light.frag" />
+    <None Include="..\Shaders\position.vs" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

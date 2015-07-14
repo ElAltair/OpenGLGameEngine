@@ -16,6 +16,9 @@
     <Filter Include="Shader System">
       <UniqueIdentifier>{0a8a0616-28ea-4e65-a1a5-d47bb5916c87}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{0eda9f25-9643-4029-a8f0-3b0d0c98f2c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -35,5 +38,16 @@
     <ClInclude Include="Program.h">
       <Filter>Shader System</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Shaders\position.vs">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\lamp.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\light.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

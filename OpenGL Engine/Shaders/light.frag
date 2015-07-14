@@ -1,4 +1,4 @@
-#version 440 core
+#version 450 core
 
 out vec4 color;
 in vec3 normal;
@@ -24,5 +24,5 @@ float spec = pow(max(dot(ViewDir,reflectDir),0.0),32);
 vec3 specular = lightColor * spec * specularStrength;
 vec3 resultColor = (ambient + diffuse + specular ) * objectColor;
 color = vec4(resultColor,1.0f);
-color = mix(texture(TextureWall,TexCoord),texture(TextureSmile,vec2(1.0 - TexCoord.x , TexCoord.y)),0.2);
+
 }

@@ -467,10 +467,10 @@ int main(void)
 	glDeleteShader(lampShader);
 	*/
 	
-	Program positionProg("position.vs", "light.fs");
+	Program positionProg("position.vs", "light.frag");
 	if (!positionProg.linkProgram())
 		return -1;
-	Program lightProg("position.vs", "lamp.fs");
+	Program lightProg("position.vs", "lamp.frag");
 	if (!lightProg.linkProgram())
 		return -1;
 
