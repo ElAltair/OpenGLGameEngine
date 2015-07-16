@@ -133,8 +133,8 @@ void Program::setMaterial(Material& material)
 	glm::vec3 ambientLight = material.getAmbient();
 	glm::vec3 diffuseLight = material.getDiffuse();
 	glm::vec3 specularLight = material.getSpecular();
-	setUniformData("material.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
-	setUniformData("material.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+//	 setUniformData("material.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+//	setUniformData("material.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
 	setUniformData("material.specular", specularLight.x, specularLight.y, specularLight.z);
 	setUniformData("material.shininess", material.getShininess());
 

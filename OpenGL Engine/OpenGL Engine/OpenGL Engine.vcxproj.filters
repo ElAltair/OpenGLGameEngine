@@ -31,6 +31,9 @@
     <Filter Include="LightSystem">
       <UniqueIdentifier>{db329b0c-17b5-4ff6-b6b2-f220ecffb3b9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Texture">
+      <UniqueIdentifier>{86136c43-19cf-4fe6-8469-503c01ee9401}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -85,5 +88,16 @@
     <None Include="..\Shaders\FragmentShader\directionalLight.frag">
       <Filter>Shaders\FragmentShader</Filter>
     </None>
+    <None Include="..\Shaders\FragmentShader\textureFrag.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
+    <None Include="..\Shaders\templeShaderPart.shader">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Resources\texture\ContainerDiffuse.png">
+      <Filter>Texture</Filter>
+    </Image>
   </ItemGroup>
 </Project>

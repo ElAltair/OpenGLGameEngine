@@ -1,10 +1,7 @@
 #version 450 core
 
-in vec3 Normal;
-in vec3 FragPos;
-out vec4 color;
-
 struct Material{
+  sampler2D diffuseTexture;
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
@@ -13,45 +10,51 @@ struct Material{
 
 uniform Material material;
 
-struct Light{
+struct DirectionalLight{
    
    //vec3 position;
-  // vec3 direction;
+   vec3 direction;
 
    vec3 ambient;
    vec3 diffuse;
    vec3 specular;
 };
 
-uniform Light light;
+struct PointLight{
+   
+   vec3 position;
+
+   vec3 ambient;
+   vec3 diffuse;
+   vec3 specular;
+
+   float linear;
+   float quadratic;
+   float constant;
+};
+
+uniform DirectionalLight directLight;
+uniform PointLight pointLight;
 
 uniform vec3 viewPos;
 
+in VShader_out 
+{
+   vec3 Normal;
+   vec3 FragPos;
+   vec2 TextureCoord;
+} fs_in;
+
+out vec4 color;
+
+
+
+
 void main()
 {
+vec3 norm = normalize(fs_in.Normal);
+vec3 viewDir = normalize(viewPos - fs_in.FragPos);
 
-// Ambient
-vec3 ambient = light.ambient * material.ambient;
-
-//Difuse
-vec3 norm = normalize(Normal);
-vec3 lightPos = vec3(0.0f,7.0f,-5.0f);
-vec3 lightDir = normalize(lightPos - FragPos);
-//vec3 lightDir = normalize(light.position - FragPos);
-// For directional light
-//vec3 lightDir = normalize(-light.direction);
-float diff = max(dot(norm,lightDir),0.0f);
-vec3 diffuse = light.diffuse * (material.diffuse * diff);
-
-//Specular
-vec3 viewDir = normalize(viewPos - FragPos);
-vec3 reflectDir = reflect(-lightDir,norm);
-float spec = pow(max(dot(viewDir,reflectDir),0.0),32);
-vec3 specular =  light.specular * (material.specular * spec);
-
-// Result color
-vec3 resultColor = diffuse + ambient + specular;
-color = vec4(resultColor, 1.0f);
-
-
+color = texture(material.diffuseTexture,fs_in.TextureCoord);
 }
+

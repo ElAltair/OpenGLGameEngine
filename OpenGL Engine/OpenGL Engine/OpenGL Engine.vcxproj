@@ -88,8 +88,13 @@
     <None Include="..\Shaders\FragmentShader\directionalLight.frag" />
     <None Include="..\Shaders\FragmentShader\lamp.frag" />
     <None Include="..\Shaders\FragmentShader\light.frag" />
+    <None Include="..\Shaders\FragmentShader\textureFrag.frag" />
     <None Include="..\Shaders\ProgramManager.conf" />
+    <None Include="..\Shaders\templeShaderPart.shader" />
     <None Include="..\Shaders\VertexShader\position.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Resources\texture\ContainerDiffuse.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
