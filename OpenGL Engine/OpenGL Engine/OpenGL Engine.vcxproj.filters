@@ -94,6 +94,21 @@
     <None Include="..\Shaders\templeShaderPart.shader">
       <Filter>Shaders\FragmentShader</Filter>
     </None>
+    <None Include="..\Shaders\VertexShader\depthShader.vs">
+      <Filter>Shaders\VertexShader</Filter>
+    </None>
+    <None Include="..\Shaders\FragmentShader\emptyShader.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
+    <None Include="..\Shaders\FragmentShader\renderDepthMap.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
+    <None Include="..\Shaders\VertexShader\quadShader.vs">
+      <Filter>Shaders\VertexShader</Filter>
+    </None>
+    <None Include="..\Shaders\FragmentShader\shadowTexture.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\texture\ContainerDiffuse.png">

@@ -210,6 +210,28 @@ void PointLight::setParamsForDistance(int distance)
 	}
 }
 
+void PointLight::setPosition(vec3 _pos)
+{
+	position = _pos;
+}
+void PointLight::setPosition(float pos1, float pos2, float pos3)
+{
+	vec3 _pos = vec3(pos1, pos2, pos3);
+	position = _pos;
+}
+void PointLight::setConstant(float _constant)
+{
+	constant = _constant;
+}
+void PointLight::setLinear(float _linear)
+{
+	linear = _linear;
+}
+void PointLight::setQuadratic(float _quadratic)
+{
+	quadratic = _quadratic;
+}
+
 PointLight::~PointLight()
 {
 

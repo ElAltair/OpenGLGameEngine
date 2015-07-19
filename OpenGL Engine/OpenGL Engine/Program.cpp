@@ -102,30 +102,48 @@ void Program::setUniformData(const GLchar* name, glm::mat4& matrix)
 	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
-/*
 void Program::setLight(Light& light)
 {
 	glm::vec3 ambientLight = light.getAmbient();
 	glm::vec3 diffuseLight = light.getDiffuse();
 	glm::vec3 specularLight = light.getSpecular();
-	glm::vec3 lightPosition = light.getPostition();
 	setUniformData("light.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
 	setUniformData("light.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
 	setUniformData("light.specular", specularLight.x, specularLight.y, specularLight.z);
-	setUniformData("light.position", lightPosition.x, lightPosition.y, lightPosition.z);
 
 }
-*/
+
 void Program::setLight(DirectionalLight& light)
 {
 	glm::vec3 ambientLight = light.getAmbient();
 	glm::vec3 diffuseLight = light.getDiffuse();
 	glm::vec3 specularLight = light.getSpecular();
 	glm::vec3 lightDirection = light.getDirection();
-	setUniformData("light.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
-	setUniformData("light.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
-	setUniformData("light.specular", specularLight.x, specularLight.y, specularLight.z);
-	setUniformData("light.direction", lightDirection.x, lightDirection.y, lightDirection.z);
+	setUniformData("DirectionalLight.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+	setUniformData("DirectionalLight.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+	setUniformData("DirectionalLight.specular", specularLight.x, specularLight.y, specularLight.z);
+	setUniformData("DirectionalLight.direction", lightDirection.x, lightDirection.y, lightDirection.z);
+
+}
+
+void Program::setLight(PointLight& light)
+{
+	glm::vec3 ambientLight = light.getAmbient();
+	glm::vec3 diffuseLight = light.getDiffuse();
+	glm::vec3 specularLight = light.getSpecular();
+	glm::vec3 lightPosition = light.getPosition();
+	float constant = light.getConstant();
+	float linear = light.getLinear();
+	float quadratic = light.getQuadratic();
+	setUniformData("pointLight.constant", constant);
+	setUniformData("pointLight.linear", linear);
+	setUniformData("pointLight.quadratic", quadratic);
+
+	setUniformData("pointLight.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+	setUniformData("pointLight.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+	setUniformData("pointLight.specular", specularLight.x, specularLight.y, specularLight.z);
+	setUniformData("pointLight.position", lightPosition.x, lightPosition.y, lightPosition.z);
+
 
 }
 void Program::setMaterial(Material& material)
@@ -133,9 +151,9 @@ void Program::setMaterial(Material& material)
 	glm::vec3 ambientLight = material.getAmbient();
 	glm::vec3 diffuseLight = material.getDiffuse();
 	glm::vec3 specularLight = material.getSpecular();
-//	 setUniformData("material.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
-//	setUniformData("material.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
-	setUniformData("material.specular", specularLight.x, specularLight.y, specularLight.z);
-	setUniformData("material.shininess", material.getShininess());
+	 setUniformData("dsmaterial.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+	setUniformData("dsmaterial.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+	setUniformData("dsmaterial.specular", specularLight.x, specularLight.y, specularLight.z);
+	setUniformData("dsmaterial.shininess", material.getShininess());
 
 }

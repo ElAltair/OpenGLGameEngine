@@ -51,6 +51,11 @@ public:
 	float getLinear(void) const;
 	float getQuadratic(void) const;
 	void setParamsForDistance(int distance);
+	void setPosition(vec3 _pos);
+	void setConstant(float _const);
+	void setLinear(float _linear);
+	void setQuadratic(float _quadratic);
+	void setPosition(float pos1, float pos2, float pos3);
 	
 
 private:

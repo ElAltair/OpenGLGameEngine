@@ -13,6 +13,16 @@
 #include "Light.h"
 #include "Material.h"
 
+void renderScene(Program&);
+void ContainterInitialize();
+void WallInitialize();
+void FloorInitialize();
+void LampInitialize();
+void renderContainer(void);
+void renderWalls(void);
+void renderFloor(void);
+void renderLamp(void);
+
 int WindowWidth = 1600;
 int WindowHeight = 900;
 GLfloat fov = 45.0f;
@@ -31,6 +41,19 @@ bool ControlTheView = true;
 bool CursorIsFree = false;
 bool ControlTheKeyboard = true;
 GLfloat cameraSpeed = 0.05f;
+
+
+
+GLuint ContainerVao;
+GLuint FloorVao;
+GLuint WallVao;
+GLuint LampVao;
+
+GLuint ContainerVbo;
+GLuint FloorVbo;
+GLuint TextureWallVbo;
+
+
 
 static void error_callback(int error, const char* description)
 {
@@ -101,8 +124,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 
 }
-
-
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -181,67 +202,6 @@ void doMovement(void)
 
 }
 
-// Shaders
-const GLchar* vertexShaderSource = "#version 440 core\n"
-"layout (location = 0) in vec3 position;\n"
-"layout (location = 1) in vec3 normalCoords;\n"
-//"layout (location = 2) in vec2 texture; \n"
-"uniform mat4 model;\n"
-"uniform mat4 view; \n"
-"uniform mat4 projection; \n"
-"out vec3 normal;"
-"out vec3 fragPosition;"
-//"out vec2 TexCoord; \n"
-"void main()\n"
-"{\n"
-"gl_Position = projection * view * model * vec4(position.x,position.y,position.z, 1.0);\n"
-"normal = mat3(transpose(inverse(model))) * normalCoords;"
-"fragPosition = vec3(model * vec4(position,1.0f));"
-//"TexCoord = vec2(texture.x, 1.0-texture.y);"
-"}\0";
-
-//"vec3 ambient = ambientStrength * lightColor;\n"
-//"vec3 result = ambient * objectColor;\n"
-//"uniform vec3 objectColor;\n"
-//"uniform vec3 lightColor;\n "
-//"color = mix(texture(TextureWall,TexCoord),texture(TextureSmile,vec2(1.0 - TexCoord.x , TexCoord.y)),0.2);\n"
-//"color = vec4(reuslt,1.0f);\n"
-const GLchar* fragmentShaderSource = "#version 440 core\n"
-//"in vec2 TexCoord; \n"
-"out vec4 color;\n"
-"in vec3 normal;\n"
-"in vec3 fragPosition;"
-//"uniform sampler2D TextureWall;\n"
-//"uniform sampler2D TextureSmile;\n"
-"uniform vec3 objectColor;"
-"uniform vec3 lightColor;"
-"uniform vec3 lightPos;"
-"uniform vec3 viewPos;"
-"void main()\n"
-"{\n"
-"float ambientStrength = 0.1f;"
-"float specularStrength = 0.5f;"
-"vec3 norm = normalize(normal);"
-"vec3 lightDir = normalize(lightPos - fragPosition);"
-"float diff = max ( dot( norm, lightDir), 0.0);"
-"vec3 diffuse = diff * lightColor;"
-"vec3 ambient = lightColor * ambientStrength;"
-"vec3 ViewDir = normalize(viewPos - fragPosition);"
-"vec3 reflectDir = reflect(-lightDir,norm);"
-"float spec = pow(max(dot(ViewDir,reflectDir),0.0),32);"
-"vec3 specular = lightColor * spec * specularStrength;"
-"vec3 resultColor = (ambient + diffuse + specular ) * objectColor;"
-"color = vec4(resultColor,1.0f);"
-//"color = mix(texture(TextureWall,TexCoord),texture(TextureSmile,vec2(1.0 - TexCoord.x , TexCoord.y)),0.2);\n"
-"}\n\0";
-
-const GLchar* lampFragmentShaderSource = "#version 440 core\n"
-"out vec4 color;\n"
-"void main()\n"
-"{\n"
-"color = vec4(1.0f,1.0f,1.0f,1.0f);"
-"}\0";
-
 
 
 int main(void)
@@ -281,103 +241,27 @@ int main(void)
 
 
 
-	GLfloat vertices[] = {
-    // Positions           // Normals           // Texture Coords
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
+	
 
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-};
-
-
-
-	GLfloat ground[] =
-	{
-		-100.0f, -100.0f, 0.0f,
-		100.0f, -100.0f, 0.0f,
-		100.0f, 100.0f, 0.0f,
-		-100.0f, 100.0f, 0.0f,
-	};
-	GLuint groundIndices[] =
-	{
-		0, 1, 2,
-		2, 3, 0
-
-	};
-
-	GLuint vao, vaoGround;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
-
-	GLuint vbo, ebo;
-	// Generate vertex array buffer on videocard memory
-	glGenBuffers(1, &vbo);
-	glGenBuffers(1, &ebo);
-
-	// Connect Array buffer with our created vertex array buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-	// Transform our data to array buffer to the car memory
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-	glBindVertexArray(0);
-
-
-	GLuint lampVao;
-	glGenVertexArrays(1, &lampVao);
-	glBindVertexArray(lampVao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(0);
 
 
 	
+	
+
+
+	
+	
+
+	
+
+
+
+
+	
+	//
+	
+	//
+		
 	
 	// Create manager, that initialize and create all programs
 	ProgramManager manager;
@@ -388,35 +272,124 @@ int main(void)
 		return -1;
 	}
 	
+	GLfloat quadVertices[] =
+	{
+		-1.0f, 1.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, 0.0f, 0.0f,
+		1.0f, -1.0f, 1.0f, 0.0f,
+
+		-1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, -1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+	};
 
 
 
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	GLuint ContainerTextures[2];
+	glGenTextures(2, ContainerTextures);
 
+	int width, height;
+	unsigned char* image;
+	image = SOIL_load_image("../Resources/texture/ContainerDiffuse.png", &width, &height, 0, SOIL_LOAD_RGB);
+	if (image == 0)
+	{
+		std::cout << "Diffuse Image don't load" << std::endl;
+	}
+	glBindTexture(GL_TEXTURE_2D, ContainerTextures[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	
-	int width, height;
-	unsigned char* image = SOIL_load_image("../Resources/texture/containerDiffuse.png", &width, &height, 0, SOIL_LOAD_RGB);
+	
+	
+	
+	image = SOIL_load_image("../Resources/texture/ContainerSpecular.png", &width, &height, 0, SOIL_LOAD_RGB);
 	if (image == 0)
 	{
-		std::cout << "Image don't load" << std::endl;
+		std::cout << "Specular Image don't load" << std::endl;
 	}
+	glBindTexture(GL_TEXTURE_2D, ContainerTextures[1]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D,0);
+
+	GLuint FloorTextures[2];
+	glGenTextures(1, FloorTextures);
+	image = SOIL_load_image("../Resources/texture/road_brick.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	if (image == 0)
+	{
+		std::cout << "Floor Image don't load" << std::endl;
+	}
+	glBindTexture(GL_TEXTURE_2D, FloorTextures[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	
+	image = SOIL_load_image("../Resources/texture/brickSpecular6.png", &width, &height, 0, SOIL_LOAD_RGB);
+	if (image == 0)
+	{
+		std::cout << "Floor specular Image don't load" << std::endl;
+	}
+	glBindTexture(GL_TEXTURE_2D, FloorTextures[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
+	GLuint WallTexture;
+	glGenTextures(1, &WallTexture);
+	image = SOIL_load_image("../Resources/texture/concrete.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	if (image == 0)
+	{
+		std::cout << "Wall Image don't load" << std::endl;
+	}
+	glBindTexture(GL_TEXTURE_2D, WallTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D,0);
+
+
+	GLuint Quad, QuadVbo;
+	glGenVertexArrays(1, &Quad);
+	glGenBuffers(1, &QuadVbo);
+	glBindVertexArray(Quad);
+
+	glBindBuffer(GL_ARRAY_BUFFER, QuadVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
 
 
 	glEnable(GL_DEPTH_TEST);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	// Program loop
+	//glEnable(GL_CULL_FACE);
 
 
 	glm::mat4 viewMatrix;
@@ -429,85 +402,347 @@ int main(void)
 	// Get programs from manager by name
 	Program* mainProgram = manager.returnProgram("mainProgram");
 	Program* lightProgram = manager.returnProgram("lightProgram");
+	Program* simpleProgram = manager.returnProgram("shadowProgram");
+	Program* quadProgram = manager.returnProgram("DepthQuad");
+	if (quadProgram == 0)
+		std::cout << "Wrong quadProgram" << std::endl;
 	
 	/// Get GLint program id from Program
 	GLint shaderProgram = mainProgram->returnProgramNameID();
 	GLint lampProgram = lightProgram->returnProgramNameID();
+	GLint shadowProgram = simpleProgram->returnProgramNameID();
+	GLint quadProgramId = quadProgram->returnProgramNameID();
 	
 
 	
-		mainProgram->use();
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glUniform1i(glGetUniformLocation(shaderProgram, "diffuseTexture"), 0);
 		
+		glm::vec3 ambientMaterial(1.0f, 1.0f, 0.6f);
+		glm::vec3 diffuseMaterial(1.0f, 1.0f, 0.6f);
+		glm::vec3 specularMaterial(0.0f, 1.0f, 0.9f);
+
+
+		Material CubeMaterial(ambientMaterial, diffuseMaterial, specularMaterial, 32.0f);
+		Material FloorMaterial(ambientMaterial, diffuseMaterial, specularMaterial, 32.0f);
+		
+		glm::vec3 ambientLight(1.0f, 1.0f, 1.0f);
+		glm::vec3 diffuseLight(1.0f, 1.0f, 1.0f);
+		glm::vec3 specularLight(1.0f, 1.0f, 1.0f);
+		glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, -3.0f);
+		glm::vec3 lightDirection = glm::vec3(-1.0f, -1.0f, -0.5f);
+
+		Light light(ambientLight, diffuseLight, specularLight);
+		DirectionalLight dirLight(light, lightDirection);
+		PointLight pointLight(light);
+		pointLight.setPosition(lightPosition);
+		pointLight.setParamsForDistance(7);
+	 
+
+		ContainterInitialize();
+		FloorInitialize();
+		WallInitialize();
+		LampInitialize();
+
+		GLuint depthMapFbo;
+		glGenFramebuffers(1, &depthMapFbo);
+
+		const GLuint ShadowWidth = 1024, ShadowHeight = 1024;
+
+		GLuint depthMap;
+		glGenTextures(1, &depthMap);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, ShadowWidth, ShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFbo);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+		else
+			std::cout << "Framebuffer is complete \n" << std::endl;
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glm::vec3 directionVector;
+
 	while (!glfwWindowShouldClose(window))
 	{
+		directionVector.x = 5 * sin(glfwGetTime() * glm::radians(60.0));
+		directionVector.z = 5 * cos(glfwGetTime() * glm::radians(60.0));
+		directionVector.y = 5.0f;
 		// Check and call events
 		glfwPollEvents();
 		doMovement();
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		
+		
+		GLfloat near_plane = 1.0f;
+		GLfloat far_plane = 40.0f;
+		glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
+		glm::mat4 lightView = glm::lookAt(glm::vec3(6.0,6.0,6.0), lightDirection, glm::vec3(1.0));
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, ShadowWidth, ShadowHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFbo);
+		          glClear(GL_DEPTH_BUFFER_BIT);
+				  glEnable(GL_CULL_FACE);
+				  glCullFace(GL_FRONT_FACE);
+				 
+				  
 
+				  // RENDER SCENE TO DEPTH BUFFER
 		
 
+
+
+
+		/*
 		mainProgram->use();
+		mainProgram->setUniformData("pointLight.constant", constant);
+		mainProgram->setUniformData("pointLight.linear", linear);
+		mainProgram->setUniformData("pointLight.quadratic", quadratic);
+		*/
+		
+		
+				  /*
+		mainProgram->setUniformData("dirLight.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+		mainProgram->setUniformData("dirLight.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+		mainProgram->setUniformData("dirLight.specular", specularLight.x, specularLight.y, specularLight.z);
+		mainProgram->setUniformData("dirLight.direction", lightDirection.x, lightDirection.y, lightDirection.z);
+		// mainProgram->setLight(pointLight);
 
-		glm::vec3 lightPosition = glm::vec3(0.0f, 7.0f, -5.0f);
-		
-		glm::vec3 ambientMaterial(1.0f, 0.5f, 0.31f);
-		glm::vec3 diffuseMaterial(1.0f, 0.5f, 0.31f);
-		glm::vec3 specularMaterial(1.0f, 0.5f, 0.31f);
-		Material newMaterial(ambientMaterial, diffuseMaterial, specularMaterial, 32.0f);
-		mainProgram->setMaterial(newMaterial);
-		
-		glm::vec3 ambientLight(0.2f, 0.2f, 0.2f);
-		glm::vec3 diffuseLight(0.5f, 0.5f, 0.5f);
-		glm::vec3 specularLight(1.0f, 1.0f, 1.0f);
-		glm::vec3 lightDirection(-0.2f, 1.0f, -0.3f);
-		DirectionalLight newLight(ambientLight, diffuseLight, specularLight, lightDirection);
-		
-		mainProgram->setLight(newLight); 
-
-		mainProgram->setUniformData("light.direction",-0.2f,-1.0f,-0.3f);
 		mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
-
+		*/
+		//viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		//projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
+		/*
+		mainProgram->use();
 		//viewMatrix = glm::mat4();
 		projectionMatrix = glm::mat4();
 		modelMatrix = glm::mat4();
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 2.0f, 0.0f));
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
 
-		viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		//viewMatrix = glm::rotate(viewMatrix,(GLfloat)(glm::radians(10.0f)*glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-		projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
 
 
 		mainProgram->setUniformData("view", viewMatrix);
 		mainProgram->setUniformData("projection", projectionMatrix);
 
+		
+		/*
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, ContainerTextures[0]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.diffuseTexture"), 0);
 
-		glBindVertexArray(vao);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, ContainerTextures[1]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.specularTexture"), 1);
+		
+		//mainProgram->setUniformData("isSpecular", 1.0);
+		mainProgram->setUniformData("dsmaterial.shininess", CubeMaterial.getShininess());
+
+*/
+		viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
+		simpleProgram->use();
+	//	mainProgram->use();
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.1f, 0.0f));
+		
+		glBindVertexArray(ContainerVao);
+		simpleProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(2.0, 2.0, -2.0));
+		modelMatrix = glm::rotate(modelMatrix, (GLfloat)(glfwGetTime())*glm::radians(20.0f), glm::vec3(0.0, 1.0, 0.0));
+		glBindVertexArray(ContainerVao);
+		simpleProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glBindVertexArray(ContainerVao);
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, directionVector);
+		modelMatrix = glm::rotate(modelMatrix, (GLfloat)(glfwGetTime())*glm::radians(60.0f), glm::vec3(0.0, 1.0, 0.0));
+		simpleProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		//glBindTexture(GL_TEXTURE_2D, 0);
+
+		
+				  
+ 
+
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, lightPosition);
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
+		simpleProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+		
+		glBindVertexArray(LampVao);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		
+
+		/*
+		mainProgram->use();
+		
+		//mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
+	
+		// mainProgram->setLight(pointLight);
+
+		//glBindTexture(GL_TEXTURE_2D, 0);
+		//mainProgram->setUniformData("isSpecular", 0.0);
+		//mainProgram->setUniformData("dmaterial.ambient", ambientMaterial.x, ambientMaterial.y, ambientMaterial.z);
+		//mainProgram->setUniformData("dmaterial.diffuse", diffuseMaterial.x, diffuseMaterial.y, diffuseMaterial.z);
+		//mainProgram->setUniformData("dmaterial.specular", specularMaterial.x, specularMaterial.y, specularMaterial.z);
+		
+		/*
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, FloorTextures[0]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.diffuseTexture"), 0);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, FloorTextures[1]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.specularTexture"), 1);
+		
+
+		
+		
+	//	ambientMaterial = FloorMaterial.getAmbient();
+	//	diffuseMaterial = FloorMaterial.getDiffuse();
+		
+	//	specularMaterial = FloorMaterial.getSpecular();
+		//mainProgram->setUniformData("isSpecular", 1.0);
+		//mainProgram->setUniformData("dmaterial.ambient", ambientMaterial.x, ambientMaterial.y, ambientMaterial.z);
+		//mainProgram->setUniformData("dmaterial.diffuse", diffuseMaterial.x, diffuseMaterial.y, diffuseMaterial.z);
+		//mainProgram->setUniformData("dmaterial.specular", specularMaterial.x, specularMaterial.y, specularMaterial.z);
+	//	mainProgram->setUniformData("material.shininess", FloorMaterial.getShininess());
+
+	*/
+		glBindVertexArray(FloorVao);
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -0.55f, 0.0f));
+		//modelMatrix = glm::rotate(modelMatrix,glm::radians(90.0f),glm::vec3(1.0f,0.0f,0.0f));
+		//mainProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+		
+		
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+		//glBindTexture(GL_TEXTURE_2D,0);
+
+
+		// Drawing walls
+		glBindVertexArray(WallVao);
+
+		// First wall
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(-10.0f, 4.45f, 0.0f));
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0, 0.5f, 1.0f));
+		modelMatrix = glm::rotate(modelMatrix,glm::radians(-90.0f),glm::vec3(0.0f,0.0f,1.0f));
+		//mainProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+		
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.diffuseTexture"), 0);
+	//	glBindTexture(GL_TEXTURE_2D, WallTexture);
+	
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 4.45f, -10.0f));
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0, 0.5f, 1.0f));
+		modelMatrix = glm::rotate(modelMatrix,glm::radians(-90.0f),glm::vec3(0.0f,1.0f,0.0f));
+		modelMatrix = glm::rotate(modelMatrix,glm::radians(-90.0f),glm::vec3(0.0f,0.0f,1.0f));
+	//	mainProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("model", modelMatrix);
+		//simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		
+		
+		
+
+		glBindVertexArray(0);
+		
+
+
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_CULL_FACE);
+
+		
+		glViewport(0, 0, WindowWidth, WindowHeight);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+
+		mainProgram->use();
+		
+		viewMatrix = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		projectionMatrix = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
+
+		mainProgram->setUniformData("view", viewMatrix);
+		mainProgram->setUniformData("projection", projectionMatrix);
+		mainProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+		
+		mainProgram->setUniformData("dirLight.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
+		mainProgram->setUniformData("dirLight.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
+		mainProgram->setUniformData("dirLight.specular", specularLight.x, specularLight.y, specularLight.z);
+		mainProgram->setUniformData("dirLight.direction", lightDirection.x, lightDirection.y, lightDirection.z);
+
+		mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ContainerTextures[0]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.diffuseTexture"), 0);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, ContainerTextures[1]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.specularTexture"), 1);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 2);
+		
+		mainProgram->setUniformData("dsmaterial.shininess", CubeMaterial.getShininess());
+
+		glActiveTexture(GL_TEXTURE0);
+		
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.1f, 0.0f));
+		mainProgram->setUniformData("model", modelMatrix);
+
+		glBindVertexArray(ContainerVao);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(2.0f, 2.0f, -2.0f));
+		modelMatrix = glm::rotate(modelMatrix, (GLfloat)(glfwGetTime())*glm::radians(20.0f), glm::vec3(0.0, 1.0, 0.0));
 		mainProgram->setUniformData("model", modelMatrix);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, directionVector);
+		modelMatrix = glm::rotate(modelMatrix, (GLfloat)(glfwGetTime())*glm::radians(60.0f), glm::vec3(0.0, 1.0, 0.0));
+		mainProgram->setUniformData("model", modelMatrix);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		/*
-		glBindVertexArray(vaoGround);
-		modelMatrix = glm::mat4();
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-
-		glDrawElements(GL_TRIANGLES,6 , GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
-		*/
-
 		lightProgram->use();
- 
+
 		lightProgram->setUniformData("view", viewMatrix);
 		lightProgram->setUniformData("projection", projectionMatrix);
 
@@ -515,20 +750,276 @@ int main(void)
 		modelMatrix = glm::translate(modelMatrix, lightPosition);
 		modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5f, 0.5f, 0.5f));
 		lightProgram->setUniformData("model", modelMatrix);
-		
-		glBindVertexArray(lampVao);
+
+		glBindVertexArray(LampVao);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
+		
+		
+		mainProgram->use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, FloorTextures[0]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.diffuseTexture"), 0);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, FloorTextures[1]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.specularTexture"), 1);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 2);
+
+		mainProgram->setUniformData("material.shininess", FloorMaterial.getShininess());
+
+	
+		glBindVertexArray(FloorVao);
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -0.55f, 0.0f));
+		mainProgram->setUniformData("model", modelMatrix);
+		mainProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+		mainProgram->setUniformData("view", viewMatrix);
+		mainProgram->setUniformData("projection", projectionMatrix);
+		
+		
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D,0);
+		
+		glBindVertexArray(WallVao);
+
+		// First wall
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(-10.0f, 4.45f, 0.0f));
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0, 0.5f, 1.0f));
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		//mainProgram->setUniformData("model", modelMatrix);
+		mainProgram->setUniformData("view", viewMatrix);
+		mainProgram->setUniformData("projection", projectionMatrix);
+		mainProgram->setUniformData("model", modelMatrix);
+		mainProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
+
+		glActiveTexture(GL_TEXTURE0);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.diffuseTexture"), 0);
+		glBindTexture(GL_TEXTURE_2D, WallTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 1);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+		modelMatrix = glm::mat4();
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 4.45f, -10.0f));
+		modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0, 0.5f, 1.0f));
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		mainProgram->setUniformData("model", modelMatrix);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+		
+		glBindTexture(GL_TEXTURE_2D,0);
+		
+		
+		
+		
+	//	glBindVertexArray(Quad);
+	//	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//	glBindVertexArray(0);
+
+		
+
+
+
+
+       
+
+
+
 
 		// Swap the buffers 
 		glfwSwapBuffers(window);
 	}
+	glDeleteVertexArrays(1, &ContainerVao);
+	glDeleteVertexArrays(1, &WallVao);
+	glDeleteVertexArrays(1, &FloorVao);
+	glDeleteVertexArrays(1, &LampVao);
+	glDeleteBuffers(1, &ContainerVbo);
+	glDeleteBuffers(1, &FloorVbo);
 
-	glDeleteVertexArrays(1, &vao);
-	glDeleteBuffers(1, &vbo);
-	glDeleteBuffers(1, &ebo);
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
+}
+
+
+
+
+void RenderScene(Program& program)
+{
+
+	renderContainer();
+	renderLamp();
+	renderWalls();
+	renderFloor();
+
+
+}
+
+void renderLamp(void)
+{
+
+}
+
+void renderContainer(void)
+{
+	glBindVertexArray(ContainerVao);
+
+}
+void renderWalls(void)
+{
+
+}
+void renderFloor(void)
+{
+
+}
+void ContainterInitialize()
+{
+	GLfloat BoxVertices[] = {
+		// Positions           // Normals           // Texture Coords
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
+		0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+
+		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+
+		-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //
+		-0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+
+		-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		-0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+
+		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+		0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
+	};
+
+	glGenVertexArrays(1, &ContainerVao);
+	glBindVertexArray(ContainerVao);
+
+
+	// Generate vertex array buffer on videocard memory
+	glGenBuffers(1, &ContainerVbo);
+
+	// Connect Array buffer with our created vertex array buffer
+	glBindBuffer(GL_ARRAY_BUFFER, ContainerVbo);
+
+	// Transform our data to array buffer to the car memory
+	glBufferData(GL_ARRAY_BUFFER, sizeof(BoxVertices), BoxVertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
+}
+void WallInitialize()
+{
+	GLfloat WallTextureCoordinates[] =
+	{
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f
+
+	};
+	glGenVertexArrays(1, &WallVao);
+	glBindVertexArray(WallVao);
+	
+	glGenBuffers(1, &TextureWallVbo);
+
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, FloorVbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, TextureWallVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(WallTextureCoordinates), WallTextureCoordinates, GL_STATIC_DRAW);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+
+	glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
+
+}
+void FloorInitialize()
+{
+	GLfloat GroundVertices[] =
+	{
+		-10.0f, 0.0f, 10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+		10.0f, 0.0f, 10.0f, 0.0f, 1.0f, 0.0f, 5.0f, 0.0f,
+		10.0f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 5.0f, 5.0f,
+		10.0f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 5.0f, 5.0f,
+		-10.0f, 0.0f, -10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 5.0f,
+		-10.0f, 0.0f, 10.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f
+	};
+	
+	glGenVertexArrays(1, &FloorVao);
+	glBindVertexArray(FloorVao);
+	glGenBuffers(1, &FloorVbo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, FloorVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GroundVertices), GroundVertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
+}
+
+void LampInitialize()
+{
+	glGenVertexArrays(1, &LampVao);
+	glBindVertexArray(LampVao);
+	glBindBuffer(GL_ARRAY_BUFFER, ContainerVbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
 }

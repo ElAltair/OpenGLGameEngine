@@ -10,6 +10,7 @@ class Shader;
 class Material;
 class Light;
 class DirectionalLight;
+class PointLight;
 class Program
 {
 public:
@@ -29,6 +30,8 @@ public:
 	void setUniformData(const GLchar* name, glm::mat4& matrix);
 	void setMaterial(Material& material);
 	void setLight(DirectionalLight& light);
+	void setLight(Light& light);
+	void setLight(PointLight& light);
 	
 
 	~Program();
