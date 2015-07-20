@@ -354,14 +354,14 @@ int main(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	GLuint WallTexture;
-	glGenTextures(1, &WallTexture);
-	image = SOIL_load_image("../Resources/texture/concrete.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+	GLuint WallTextures[2];
+	glGenTextures(2, WallTextures);
+	image = SOIL_load_image("../Resources/texture/brickWall.jpg", &width, &height, 0, SOIL_LOAD_RGB);
 	if (image == 0)
 	{
 		std::cout << "Wall Image don't load" << std::endl;
 	}
-	glBindTexture(GL_TEXTURE_2D, WallTexture);
+	glBindTexture(GL_TEXTURE_2D, WallTextures[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	SOIL_free_image_data(image);
@@ -370,7 +370,22 @@ int main(void)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D,0);
-
+	
+	
+	image = SOIL_load_image("../Resources/texture/SpecularBrickWall.png", &width, &height, 0, SOIL_LOAD_RGB);
+	if (image == 0)
+	{
+		std::cout << "Floor specular Image don't load" << std::endl;
+	}
+	glBindTexture(GL_TEXTURE_2D, WallTextures[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	SOIL_free_image_data(image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	GLuint Quad, QuadVbo;
 	glGenVertexArrays(1, &Quad);
@@ -425,13 +440,15 @@ int main(void)
 		Material FloorMaterial(ambientMaterial, diffuseMaterial, specularMaterial, 32.0f);
 		
 		glm::vec3 ambientLight(1.0f, 1.0f, 1.0f);
-		glm::vec3 diffuseLight(1.0f, 1.0f, 1.0f);
-		glm::vec3 specularLight(1.0f, 1.0f, 1.0f);
+		glm::vec3 diffuseLight(0.7f, 0.7f, 0.7f);
+		glm::vec3 specularLight(0.7f, 0.7f, 0.7f);
 		glm::vec3 lightPosition = glm::vec3(0.0f, 3.0f, -3.0f);
-		glm::vec3 lightDirection = glm::vec3(-1.0f, -1.0f, -0.5f);
+		
+		glm::vec3 DirectionalLightPosition = glm::vec3(6.0f, 2.0f, 6.0f);
+		glm::vec3 DirectionalLightDirection = glm::vec3(-1.0f, -1.0f, -0.5f);
 
 		Light light(ambientLight, diffuseLight, specularLight);
-		DirectionalLight dirLight(light, lightDirection);
+		DirectionalLight dirLight(light, DirectionalLightDirection);
 		PointLight pointLight(light);
 		pointLight.setPosition(lightPosition);
 		pointLight.setParamsForDistance(7);
@@ -451,8 +468,8 @@ int main(void)
 		glGenTextures(1, &depthMap);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, ShadowWidth, ShadowHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
@@ -469,6 +486,8 @@ int main(void)
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glm::vec3 directionVector;
 
+		GLfloat near_plane = 1.0f;
+		GLfloat far_plane = 40.0f;
 	while (!glfwWindowShouldClose(window))
 	{
 		directionVector.x = 5 * sin(glfwGetTime() * glm::radians(60.0));
@@ -481,10 +500,8 @@ int main(void)
 		
 		
 		
-		GLfloat near_plane = 1.0f;
-		GLfloat far_plane = 40.0f;
 		glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
-		glm::mat4 lightView = glm::lookAt(glm::vec3(6.0,6.0,6.0), lightDirection, glm::vec3(1.0));
+		glm::mat4 lightView = glm::lookAt(DirectionalLightPosition, DirectionalLightDirection, glm::vec3(1.0));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
 		glViewport(0, 0, ShadowWidth, ShadowHeight);
@@ -553,7 +570,7 @@ int main(void)
 		simpleProgram->use();
 	//	mainProgram->use();
 		modelMatrix = glm::mat4();
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.1f, 0.0f));
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 		
 		glBindVertexArray(ContainerVao);
 		simpleProgram->setUniformData("model", modelMatrix);
@@ -669,6 +686,7 @@ int main(void)
 		modelMatrix = glm::rotate(modelMatrix,glm::radians(-90.0f),glm::vec3(0.0f,0.0f,1.0f));
 	//	mainProgram->setUniformData("model", modelMatrix);
 		simpleProgram->setUniformData("model", modelMatrix);
+		simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
 		//simpleProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -684,9 +702,22 @@ int main(void)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_CULL_FACE);
 
+
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		quadProgram->use();
+		glViewport(WindowWidth-400,WindowHeight - 400, 300, 300);
+		//glViewport(0, 0, WindowWidth, WindowHeight);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, depthMap);
+		glBindVertexArray(Quad);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		
 		
 		glViewport(0, 0, WindowWidth, WindowHeight);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 
 		mainProgram->use();
@@ -701,7 +732,7 @@ int main(void)
 		mainProgram->setUniformData("dirLight.ambient", ambientLight.x, ambientLight.y, ambientLight.z);
 		mainProgram->setUniformData("dirLight.diffuse", diffuseLight.x, diffuseLight.y, diffuseLight.z);
 		mainProgram->setUniformData("dirLight.specular", specularLight.x, specularLight.y, specularLight.z);
-		mainProgram->setUniformData("dirLight.direction", lightDirection.x, lightDirection.y, lightDirection.z);
+		mainProgram->setUniformData("dirLight.direction", DirectionalLightDirection.x, DirectionalLightDirection.y, DirectionalLightDirection.z);
 
 		mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
@@ -717,11 +748,12 @@ int main(void)
 		glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 2);
 		
 		mainProgram->setUniformData("dsmaterial.shininess", CubeMaterial.getShininess());
+		mainProgram->setUniformData("IsShadow", 1.0);
 
-		glActiveTexture(GL_TEXTURE0);
+		//glActiveTexture(GL_TEXTURE0);
 		
 		modelMatrix = glm::mat4();
-		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.1f, 0.0f));
+		modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 		mainProgram->setUniformData("model", modelMatrix);
 
 		glBindVertexArray(ContainerVao);
@@ -756,6 +788,7 @@ int main(void)
 		glBindVertexArray(0);
 		
 		
+		
 		mainProgram->use();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, FloorTextures[0]);
@@ -783,6 +816,7 @@ int main(void)
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D,0);
 		
+		
 		glBindVertexArray(WallVao);
 
 		// First wall
@@ -797,11 +831,14 @@ int main(void)
 		mainProgram->setUniformData("lightSpaceMatrix", lightSpaceMatrix);
 
 		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, WallTextures[0]);
 		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.diffuseTexture"), 0);
-		glBindTexture(GL_TEXTURE_2D, WallTexture);
 		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, WallTextures[1]);
+		glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.specularTexture"), 1);
+		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
-		glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 1);
+		glUniform1i(glGetUniformLocation(shaderProgram, "shadowMap"), 2);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -827,7 +864,7 @@ int main(void)
 	//	glBindVertexArray(0);
 
 		
-
+		
 
 
 
@@ -957,10 +994,10 @@ void WallInitialize()
 	GLfloat WallTextureCoordinates[] =
 	{
 		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
+		4.0f, 0.0f,
+		4.0f, 4.0f,
+		4.0f, 4.0f,
+		0.0f, 4.0f,
 		0.0f, 0.0f
 
 	};
