@@ -91,12 +91,14 @@
     <None Include="..\Shaders\FragmentShader\light.frag" />
     <None Include="..\Shaders\FragmentShader\renderDepthMap.frag" />
     <None Include="..\Shaders\FragmentShader\shadowTexture.frag" />
+    <None Include="..\Shaders\FragmentShader\skybox.frag" />
     <None Include="..\Shaders\FragmentShader\textureFrag.frag" />
     <None Include="..\Shaders\ProgramManager.conf" />
     <None Include="..\Shaders\templeShaderPart.shader" />
     <None Include="..\Shaders\VertexShader\position.vs" />
     <None Include="..\Shaders\VertexShader\depthShader.vs" />
     <None Include="..\Shaders\VertexShader\quadShader.vs" />
+    <None Include="..\Shaders\VertexShader\skybox.vs" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\texture\ContainerDiffuse.png" />

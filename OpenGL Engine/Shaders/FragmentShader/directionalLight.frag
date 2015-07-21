@@ -46,6 +46,8 @@ struct DirectionalLight
 
 uniform sampler2D shadowMap;
 uniform PointLight pointLight;
+uniform PointLight pointLight1;
+uniform PointLight pointLight2;
 uniform DirectionalLight dirLight;
 uniform Material dsmaterial;
 uniform Material2 material;
@@ -152,16 +154,18 @@ void main( )
 
 
 	vec3 result = calculatePointLight( pointLight, fs_in.FragPos, norm, viewDir );
+	result += calculatePointLight( pointLight1, fs_in.FragPos, norm, viewDir );
+	result += calculatePointLight( pointLight2, fs_in.FragPos, norm, viewDir );
 
 
-	result += calculateDirectionalLight( dirLight, lightDir, fs_in.FragPos, norm, viewDir );
+	vec3 DirectResult = calculateDirectionalLight( dirLight, lightDir, fs_in.FragPos, norm, viewDir );
 	vec3 ambient = dirLight.ambient * vec3( texture( dsmaterial.diffuseTexture, fs_in.TextureCoord ) );
 	ambient *= 0.09;
 
 	float shadow = ShadowCalculation( fs_in.FragPosLightSpace, norm, lightDir );
 	vec3 lighting;
 
-	lighting = ambient + result * shadow;
+	lighting = ambient + ( DirectResult + result ) * shadow;
 
 
 	if ( gl_FrontFacing )

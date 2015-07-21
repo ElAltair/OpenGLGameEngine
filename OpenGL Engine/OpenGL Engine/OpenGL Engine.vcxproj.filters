@@ -109,6 +109,12 @@
     <None Include="..\Shaders\FragmentShader\shadowTexture.frag">
       <Filter>Shaders\FragmentShader</Filter>
     </None>
+    <None Include="..\Shaders\VertexShader\skybox.vs">
+      <Filter>Shaders\VertexShader</Filter>
+    </None>
+    <None Include="..\Shaders\FragmentShader\skybox.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\texture\ContainerDiffuse.png">

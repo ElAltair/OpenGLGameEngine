@@ -130,6 +130,8 @@ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mo
 {
 	if ( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
 		glfwSetWindowShouldClose( window, GL_TRUE );
+	else if ( key == GLFW_KEY_F8 && action == GLFW_PRESS )
+		glPolygonMode(GL_FRONT_AND_BACK , GL_LINE );
 	if ( action == GLFW_PRESS )
 		keys [key] = true;
 	else if ( action == GLFW_RELEASE )
@@ -397,14 +399,24 @@ int main( void )
 	Program* lightProgram = manager.returnProgram( "lightProgram" );
 	Program* simpleProgram = manager.returnProgram( "shadowProgram" );
 	Program* quadProgram = manager.returnProgram( "DepthQuad" );
-	if ( quadProgram == 0 )
+	Program* skyboxProgram = manager.returnProgram( "skyboxProgram");
+	if (  mainProgram == 0 )
+		std::cout << "Wrong mainProgram" << std::endl;
+	else if (  lightProgram == 0 )
+		std::cout << "Wrong lightProgram" << std::endl;
+	else if (  simpleProgram == 0 )
+		std::cout << "Wrong simpelProgram" << std::endl;
+	else if ( quadProgram == 0 )
 		std::cout << "Wrong quadProgram" << std::endl;
+	else if ( skyboxProgram == 0 )
+		std::cout << "Wrong skyboxProgram" << std::endl;
 
 	/// Get GLint program id from Program
 	GLint shaderProgram = mainProgram->returnProgramNameID( );
 	GLint lampProgram = lightProgram->returnProgramNameID( );
 	GLint shadowProgram = simpleProgram->returnProgramNameID( );
 	GLint quadProgramId = quadProgram->returnProgramNameID( );
+	GLint skyboxProgramId = skyboxProgram->returnProgramNameID( );
 
 
 
@@ -417,24 +429,43 @@ int main( void )
 	Material CubeMaterial( ambientMaterial, diffuseMaterial, specularMaterial, 32.0f );
 	Material FloorMaterial( ambientMaterial, diffuseMaterial, specularMaterial, 32.0f );
 
-	glm::vec3 PointAmbientLight( 0.1f, 0.1f, 0.1f );
-	glm::vec3 PointDiffuseLight( 0.7f, 0.7f, 0.7f );
-	glm::vec3 PointSpecularLight( 0.2f, 0.2f, 0.2f );
+	glm::vec3 PointAmbientLight( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointDiffuseLight( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointSpecularLight( 0.4f, 0.2f, 0.2f );
 	glm::vec3 PointlightPosition = glm::vec3( 0.0f, 3.0f, -3.0f );
 
-	glm::vec3 DirectAmbientLight( 0.0f, 0.0f, 0.0f );
-	glm::vec3 DirectDiffuseLight( 0.01f, 0.01f, 0.01f );
-	glm::vec3 DirectSpecularLight( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointAmbientLight2( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointDiffuseLight2( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointSpecularLight2( 0.2f, 0.4f, 0.2f );
+	glm::vec3 PointlightPosition2 = glm::vec3( 0.0f, 3.0f, 2.0f );
+
+	glm::vec3 PointAmbientLight3( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointDiffuseLight3( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointSpecularLight3( 0.2f, 0.2f, 0.4f );
+	glm::vec3 PointlightPosition3 = glm::vec3( -3.0f, 3.0f, 0.0f );
+
+	glm::vec3 DirectAmbientLight( 0.2f, 0.2f, 0.2f );
+	glm::vec3 DirectDiffuseLight( 0.5f, 0.5f, 0.5f );
+	glm::vec3 DirectSpecularLight( 0.2f, 0.2f, 0.2f );
 
 	glm::vec3 DirectionalLightPosition = glm::vec3( 6.0f, 2.0f, 6.0f );
 	glm::vec3 DirectionalLightDirection = glm::vec3( -1.0f, -1.0f, -0.5f );
 
 	Light PLight( PointAmbientLight, PointDiffuseLight, PointSpecularLight );
+	Light PRLight( PointAmbientLight2, PointDiffuseLight2, PointSpecularLight2 );
+	Light PLLight( PointAmbientLight3, PointDiffuseLight3, PointSpecularLight3 );
+
 	Light DirLight( DirectAmbientLight, DirectDiffuseLight, DirectSpecularLight );
 	DirectionalLight dirLight( DirLight, DirectionalLightDirection );
 	PointLight pointLight( PLight );
+	PointLight pointLight2( PRLight );
+	PointLight pointLight3( PLLight );
 	pointLight.setPosition( PointlightPosition );
-	pointLight.setParamsForDistance( 32 );
+	pointLight.setParamsForDistance( 7 );
+	pointLight2.setPosition( PointlightPosition2 );
+	pointLight2.setParamsForDistance( 7 );
+	pointLight3.setPosition( PointlightPosition3 );
+	pointLight3.setParamsForDistance( 7 );
 
 
 	ContainterInitialize( );
@@ -463,8 +494,105 @@ int main( void )
 	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE )
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	else
-		std::cout << "Framebuffer is complete \n" << std::endl;
+		std::cout << "Frame buffer is complete \n" << std::endl;
 	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+
+	// load cubemap texture
+	std::vector<const GLchar*> faces;
+	//faces.push_back( "../Resources/skybox/simple/right.jpg" );
+	//faces.push_back( "../Resources/skybox/simple/left.jpg" );
+	//faces.push_back( "../Resources/skybox/simple/top.jpg" );
+	//faces.push_back( "../Resources/skybox/simple/bottom.jpg" );
+	//faces.push_back( "../Resources/skybox/simple/back.jpg");
+	//faces.push_back( "../Resources/skybox/simple/front.jpg" );
+	
+	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_rt.jpg" );
+	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_lf.jpg" );
+	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_up.jpg" );
+	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_dn.jpg" );
+	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_bk.jpg");
+	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_ft.jpg" );
+	GLuint skyBoxCubemap;
+	glGenTextures( 1, &skyBoxCubemap );
+	const GLuint SkyBoxCubeMapWidth = 1024, SkyBoxCubeMapHeight = 1024;
+	glBindTexture( GL_TEXTURE_CUBE_MAP, skyBoxCubemap );
+	for ( GLuint i = 0; i < faces.size( ); ++i )
+	{
+		image = SOIL_load_image( faces [i], &width, &height, 0, SOIL_LOAD_RGB );
+		if ( !image )
+		{
+			std::cout << "Can't load skybox " << i << std::endl;
+		}
+		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image );
+	};
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE );
+	glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
+
+	GLfloat skyboxVertices [ ] = {
+		// Positions          
+		-1.0f, 1.0f, -1.0f,  
+		-1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+
+		-1.0f, -1.0f, 1.0f,   
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f,
+		-1.0f, -1.0f, 1.0f,
+
+		-1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+		1.0f, -1.0f, 1.0f
+	};
+
+	GLuint skyBoxVao;
+	glGenVertexArrays( 1, &skyBoxVao );
+	glBindVertexArray( skyBoxVao );
+	GLuint skyBoxVbo;
+	glGenBuffers( 1, &skyBoxVbo );
+	glBindBuffer( GL_ARRAY_BUFFER, skyBoxVbo );
+	glBufferData( GL_ARRAY_BUFFER, sizeof( skyboxVertices ), skyboxVertices, GL_STATIC_DRAW );
+	glEnableVertexAttribArray( 0 );
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*) 0);
+	glBindVertexArray( 0 );
+	
+
+
+
+
 
 	glClearColor( 0.1f, 0.1f, 0.1f, 1.0f );
 	glm::vec3 directionVector;
@@ -479,7 +607,6 @@ int main( void )
 		// Check and call events
 		glfwPollEvents( );
 		doMovement( );
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 
@@ -487,6 +614,7 @@ int main( void )
 		glm::mat4 lightView = glm::lookAt( DirectionalLightPosition, DirectionalLightDirection, glm::vec3( 1.0 ) );
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
+		// Start rendering from direct light position
 		glViewport( 0, 0, ShadowWidth, ShadowHeight );
 		glBindFramebuffer( GL_FRAMEBUFFER, depthMapFbo );
 		glClear( GL_DEPTH_BUFFER_BIT );
@@ -495,7 +623,6 @@ int main( void )
 
 
 
-		// RENDER SCENE TO DEPTH BUFFER
 
 
 
@@ -594,6 +721,27 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glBindVertexArray( 0 );
 
 
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, PointlightPosition2 );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 0.5f, 0.5f, 0.5f ) );
+		simpleProgram->setUniformData( "model", modelMatrix );
+		simpleProgram->setUniformData( "lightSpaceMatrix", lightSpaceMatrix );
+
+		glBindVertexArray( LampVao );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, PointlightPosition3 );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 0.5f, 0.5f, 0.5f ) );
+		simpleProgram->setUniformData( "model", modelMatrix );
+		simpleProgram->setUniformData( "lightSpaceMatrix", lightSpaceMatrix );
+
+		glBindVertexArray( LampVao );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		glBindVertexArray( 0 );
+
+
+
 		/*
 		mainProgram->use();
 
@@ -684,10 +832,16 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 
 		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 		glDisable( GL_CULL_FACE );
+		// end render from direct light Posititon
 
 
 
+		glViewport( 0, 0, WindowWidth, WindowHeight );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+		
+		
+
+
 		quadProgram->use( );
 		glViewport( WindowWidth - 400, WindowHeight - 400, 300, 300 );
 		//glViewport(0, 0, WindowWidth, WindowHeight);
@@ -697,20 +851,23 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glDrawArrays( GL_TRIANGLES, 0, 6 );
 		glBindVertexArray( 0 );
 		glBindTexture( GL_TEXTURE_2D, 0 );
-
+		
+		
+		
 
 
 		glViewport( 0, 0, WindowWidth, WindowHeight );
 
+		viewMatrix = glm::lookAt( cameraPos, cameraPos + cameraFront, cameraUp );
+		projectionMatrix = glm::perspective( glm::radians( fov ), aspectRatio, 0.1f, 100.0f );
 
 		mainProgram->use( );
 
-		viewMatrix = glm::lookAt( cameraPos, cameraPos + cameraFront, cameraUp );
-		projectionMatrix = glm::perspective( glm::radians( fov ), aspectRatio, 0.1f, 100.0f );
 
 		mainProgram->setUniformData( "view", viewMatrix );
 		mainProgram->setUniformData( "projection", projectionMatrix );
 		mainProgram->setUniformData( "lightSpaceMatrix", lightSpaceMatrix );
+		
 
 		mainProgram->setUniformData( "dirLight.ambient", DirectAmbientLight.x, DirectAmbientLight.y, DirectAmbientLight.z );
 		mainProgram->setUniformData( "dirLight.diffuse", DirectDiffuseLight.x, DirectDiffuseLight.y, DirectDiffuseLight.z );
@@ -726,18 +883,35 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		mainProgram->setUniformData( "pointLight.linear", pointLight.getLinear( ) );
 		mainProgram->setUniformData( "pointLight.quadratic", pointLight.getQuadratic( ) );
 
+		mainProgram->setUniformData( "pointLight1.ambient", PointAmbientLight2.x, PointAmbientLight2.y, PointAmbientLight2.z );
+		mainProgram->setUniformData( "pointLight1.diffuse", PointDiffuseLight2.x, PointDiffuseLight2.y, PointDiffuseLight2.z );
+		mainProgram->setUniformData( "pointLight1.specular", PointSpecularLight2.x, PointSpecularLight2.y, PointSpecularLight2.z );
+		mainProgram->setUniformData( "pointLight1.position", PointlightPosition2.x, PointlightPosition2.y, PointlightPosition2.z );
+
+		mainProgram->setUniformData( "pointLight1.constant", pointLight2.getConstant( ) );
+		mainProgram->setUniformData( "pointLight1.linear", pointLight2.getLinear( ) );
+		mainProgram->setUniformData( "pointLight1.quadratic", pointLight2.getQuadratic( ) );
+
+		mainProgram->setUniformData( "pointLight2.ambient", PointAmbientLight3.x, PointAmbientLight3.y, PointAmbientLight3.z );
+		mainProgram->setUniformData( "pointLight2.diffuse", PointDiffuseLight3.x, PointDiffuseLight3.y, PointDiffuseLight3.z );
+		mainProgram->setUniformData( "pointLight2.specular", PointSpecularLight3.x, PointSpecularLight3.y, PointSpecularLight3.z );
+		mainProgram->setUniformData( "pointLight2.position", PointlightPosition3.x, PointlightPosition3.y, PointlightPosition3.z );
+
+		mainProgram->setUniformData( "pointLight2.constant", pointLight3.getConstant( ) );
+		mainProgram->setUniformData( "pointLight2.linear", pointLight3.getLinear( ) );
+		mainProgram->setUniformData( "pointLight2.quadratic", pointLight3.getQuadratic( ) );
 		mainProgram->setUniformData( "viewPos", cameraPos.x, cameraPos.y, cameraPos.z );
 
 		glActiveTexture( GL_TEXTURE0 );
-		glBindTexture( GL_TEXTURE_2D, ContainerTextures [0] );
 		glUniform1i( glGetUniformLocation( shaderProgram, "dsmaterial.diffuseTexture" ), 0 );
+		glBindTexture( GL_TEXTURE_2D, ContainerTextures [0] );
 
 		glActiveTexture( GL_TEXTURE1 );
-		glBindTexture( GL_TEXTURE_2D, ContainerTextures [1] );
 		glUniform1i( glGetUniformLocation( shaderProgram, "dsmaterial.specularTexture" ), 1 );
+		glBindTexture( GL_TEXTURE_2D, ContainerTextures [1] );
 		glActiveTexture( GL_TEXTURE2 );
-		glBindTexture( GL_TEXTURE_2D, depthMap );
 		glUniform1i( glGetUniformLocation( shaderProgram, "shadowMap" ), 2 );
+		glBindTexture( GL_TEXTURE_2D, depthMap );
 
 		mainProgram->setUniformData( "dsmaterial.shininess", CubeMaterial.getShininess( ) );
 		mainProgram->setUniformData( "IsShadow", 1.0 );
@@ -751,6 +925,8 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glBindVertexArray( ContainerVao );
 		glDrawArrays( GL_TRIANGLES, 0, 36 );
 
+		
+		
 		modelMatrix = glm::mat4( );
 		modelMatrix = glm::translate( modelMatrix, glm::vec3( 2.0f, 2.0f, -2.0f ) );
 		modelMatrix = glm::rotate( modelMatrix, (GLfloat) (glfwGetTime( ))*glm::radians( 20.0f ), glm::vec3( 0.0, 1.0, 0.0 ) );
@@ -764,14 +940,39 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glDrawArrays( GL_TRIANGLES, 0, 36 );
 		glBindVertexArray( 0 );
 		glBindTexture( GL_TEXTURE_2D, 0 );
+		
 
 		lightProgram->use( );
 
+		glm::vec3 LightColor = glm::vec3( 0.2f, 0.0f, 0.0f );
+		glm::vec3 LightColor2 = glm::vec3( 0.0f, 0.2f, 0.0f );
+		glm::vec3 LightColor3 = glm::vec3( 0.0f, 0.0f, 0.2f );
 		lightProgram->setUniformData( "view", viewMatrix );
 		lightProgram->setUniformData( "projection", projectionMatrix );
+		lightProgram->setUniformData( "LightColor", LightColor.x, LightColor.y, LightColor.z );
 
 		modelMatrix = glm::mat4( );
 		modelMatrix = glm::translate( modelMatrix, PointlightPosition );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 0.5f, 0.5f, 0.5f ) );
+		lightProgram->setUniformData( "model", modelMatrix );
+
+		glBindVertexArray( LampVao );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+
+		lightProgram->setUniformData( "LightColor", LightColor2.x, LightColor2.y, LightColor2.z );
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, PointlightPosition2 );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 0.5f, 0.5f, 0.5f ) );
+		lightProgram->setUniformData( "model", modelMatrix );
+
+		glBindVertexArray( LampVao );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+
+		lightProgram->setUniformData( "LightColor", LightColor3.x, LightColor3.y, LightColor3.z );
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, PointlightPosition3 );
 		modelMatrix = glm::scale( modelMatrix, glm::vec3( 0.5f, 0.5f, 0.5f ) );
 		lightProgram->setUniformData( "model", modelMatrix );
 
@@ -843,19 +1044,31 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		mainProgram->setUniformData( "model", modelMatrix );
 
 		glDrawArrays( GL_TRIANGLES, 0, 6 );
-
-
-
 		glBindTexture( GL_TEXTURE_2D, 0 );
 
 
+	    	
+
+		glDepthFunc( GL_LEQUAL );
+		skyboxProgram->use( );
+		viewMatrix = glm::mat4( glm::mat3( glm::lookAt( cameraPos, cameraPos + cameraFront, cameraUp ) ) );
+		skyboxProgram->setUniformData( "projection", projectionMatrix );
+		skyboxProgram->setUniformData( "view", viewMatrix );
+		glBindVertexArray( skyBoxVao );
+		glActiveTexture( GL_TEXTURE4 );
+		glUniform1i( glGetUniformLocation( skyboxProgramId, "skybox" ), 4 );
+		glBindTexture( GL_TEXTURE_CUBE_MAP, skyBoxCubemap );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
+		glBindVertexArray( 0 );
+		glDepthFunc(GL_LESS); 
 
 
 		//	glBindVertexArray(Quad);
 		//	glDrawArrays(GL_TRIANGLES, 0, 6);
 		//	glBindVertexArray(0);
 
-
+		
 
 
 
