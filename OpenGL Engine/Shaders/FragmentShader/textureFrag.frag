@@ -2,7 +2,7 @@
 
 in VShader_out
 {
-    vec3 Normal;
+	vec3 Normal;
 	vec3 FragPos;
 	vec2 TextureCoord;
 }fs_in;
@@ -10,7 +10,7 @@ in VShader_out
 out vec4 color;
 uniform sampler2D Cubetexture;
 
-void main()
+void main( )
 {
-color = texture(Cubetexture,fs_in.TextureCoord);
+	color = texture( Cubetexture, fs_in.TextureCoord );
 }

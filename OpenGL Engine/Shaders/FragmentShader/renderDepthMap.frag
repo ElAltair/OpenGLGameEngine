@@ -5,10 +5,10 @@ in vec2 TexCoords;
 
 uniform sampler2D depthMap;
 
-void main()
+void main( )
 {
 
-float depthValue = texture(depthMap,Texcoords).r);
-color = ve4(vec4(depthValue),1.0);
+	float depthValue = texture( depthMap, Texcoords ).r);
+	color = ve4( vec4( depthValue ), 1.0 );
 
 }

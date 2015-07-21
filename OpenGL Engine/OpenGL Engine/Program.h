@@ -32,7 +32,10 @@ public:
 	void setLight(DirectionalLight& light);
 	void setLight(Light& light);
 	void setLight(PointLight& light);
-	
+
+
+	int place;
+
 
 	~Program();
 private:
