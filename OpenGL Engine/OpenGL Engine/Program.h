@@ -15,10 +15,13 @@ class Program
 {
 public:
 	Program(const string& v,const string&f);
+	Program( const string& g );
 	bool loadShaders();
 	
 	GLint returnProgramNameID(void);
 	string returnProgramName(void);
+	inline Shader* returnVertexShader( void ) { return vertexShader; };
+	inline Shader* returnFragmentShader( void ) { return fragmentShader; };
 	void setProgramName(string name);
 	bool linkProgram(void);
 	void use(void);

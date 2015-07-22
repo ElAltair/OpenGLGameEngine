@@ -14,6 +14,8 @@ bool Shader::loadSource(void)
 	filePath = "../Shaders/VertexShader/" + ShaderName;
 	else if (ShaderType == GL_FRAGMENT_SHADER)
 	filePath = "../Shaders/FragmentShader/" + ShaderName;
+	else if(ShaderType == GL_GEOMETRY_SHADER)
+	filePath = "../Shaders/GeometryShader/" + ShaderName;
 
 	file.open(filePath);
 	

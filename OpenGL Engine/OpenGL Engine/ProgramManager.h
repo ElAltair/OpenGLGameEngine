@@ -17,6 +17,7 @@ public:
 	bool createPrograms(void);
 	GLint returnProgramId(string name);
 	Program* returnProgram(string name);
+	void setGeometricShader( string name );
 	~ProgramManager();
 private:
 	string ConfigPath;

@@ -34,6 +34,9 @@
     <Filter Include="Texture">
       <UniqueIdentifier>{86136c43-19cf-4fe6-8469-503c01ee9401}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\GeometricShader">
+      <UniqueIdentifier>{c6182861-7167-4356-ab07-9c29e826bac6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -114,6 +117,15 @@
     </None>
     <None Include="..\Shaders\FragmentShader\skybox.frag">
       <Filter>Shaders\FragmentShader</Filter>
+    </None>
+    <None Include="..\Shaders\VertexShader\pointShadowShader.vs">
+      <Filter>Shaders\VertexShader</Filter>
+    </None>
+    <None Include="..\Shaders\FragmentShader\pointShadowShader.frag">
+      <Filter>Shaders\FragmentShader</Filter>
+    </None>
+    <None Include="..\Shaders\GeometryShader\pointShadowShader.gm">
+      <Filter>Shaders\GeometricShader</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -89,12 +89,15 @@
     <None Include="..\Shaders\FragmentShader\emptyShader.frag" />
     <None Include="..\Shaders\FragmentShader\lamp.frag" />
     <None Include="..\Shaders\FragmentShader\light.frag" />
+    <None Include="..\Shaders\FragmentShader\pointShadowShader.frag" />
     <None Include="..\Shaders\FragmentShader\renderDepthMap.frag" />
     <None Include="..\Shaders\FragmentShader\shadowTexture.frag" />
     <None Include="..\Shaders\FragmentShader\skybox.frag" />
     <None Include="..\Shaders\FragmentShader\textureFrag.frag" />
+    <None Include="..\Shaders\GeometryShader\pointShadowShader.gm" />
     <None Include="..\Shaders\ProgramManager.conf" />
     <None Include="..\Shaders\templeShaderPart.shader" />
+    <None Include="..\Shaders\VertexShader\pointShadowShader.vs" />
     <None Include="..\Shaders\VertexShader\position.vs" />
     <None Include="..\Shaders\VertexShader\depthShader.vs" />
     <None Include="..\Shaders\VertexShader\quadShader.vs" />

@@ -9,7 +9,12 @@ Program::Program(const string &v,const  string &f) :VertexShaderName(v), Fragmen
 
 }
 
-bool Program::loadShaders()
+Program::Program( const string& g )
+{
+
+}
+
+bool Program::loadShaders( )
 {
 	vertexShader = new Shader(VertexShaderName, GL_VERTEX_SHADER);
 	fragmentShader = new Shader(FragmentShaderName, GL_FRAGMENT_SHADER);

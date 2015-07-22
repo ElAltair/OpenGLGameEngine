@@ -44,21 +44,35 @@ struct DirectionalLight
 	vec3 specular;
 };
 
+// Directional shadows
 uniform sampler2D shadowMap;
+
+//Lights
+// red light
 uniform PointLight pointLight;
+// green light
 uniform PointLight pointLight1;
+// blue light
 uniform PointLight pointLight2;
+
 uniform DirectionalLight dirLight;
+
 uniform Material dsmaterial;
 uniform Material2 material;
+
 uniform float isSpecular;
 uniform vec3 viewPos;
+
+//Omnidirectional shadows
+uniform float far_plane;
+uniform samplerCube depthCubeMap;
 
 in VShader_out
 {
 	vec3 Normal;
 	vec3 FragPos;
 	vec2 TextureCoord;
+//Directional shadows
 	vec4 FragPosLightSpace;
 } fs_in;
 
@@ -69,6 +83,7 @@ vec3 calculatePointLight( PointLight light, vec3 FragPos, vec3 Normal, vec3 ligh
 vec3 calculateDirectionalLight( DirectionalLight light, vec3 lightDir, vec3 FragPos, vec3 Normal, vec3 viewDir );
 float SampleShadowMap( sampler2D shadowMap, vec2 coords, float compare );
 float SampleShadowMapLinear( sampler2D shadowMpa, vec2 coords, float compare );
+float OmnidirectionalShadowCalculation( vec3 FragPos );
 
 
 float SampleShadowMap( sampler2D shadowMap, vec2 coords, float compare )
@@ -144,6 +159,24 @@ float ShadowCalculation( vec4 FragPosLightSpace, vec3 Normal, vec3 lightDir )
 
 }
 
+float OmnidirectionalShadowCalculation(PointLight light, vec3 FragPos )
+{
+	vec3 fragToLight = FragPos - light.position;
+
+	float closestDepth = texture( depthCubeMap, fragToLight ).r;
+	closestDepth *= far_plane;
+	float currentDepth = length( fragToLight );
+
+	float bias = 0.05;
+	float shadow = currentDepth - bias > closestDepth ? 1.0 : 1.0;
+
+
+	return closestDepth / far_plane;
+//	return shadow;
+
+
+}
+
 
 void main( )
 {
@@ -162,10 +195,11 @@ void main( )
 	vec3 ambient = dirLight.ambient * vec3( texture( dsmaterial.diffuseTexture, fs_in.TextureCoord ) );
 	ambient *= 0.09;
 
+	//float shadow = OmnidirectionalShadowCalculation( pointLight, fs_in.FragPos );
 	float shadow = ShadowCalculation( fs_in.FragPosLightSpace, norm, lightDir );
 	vec3 lighting;
 
-	lighting = ambient + ( DirectResult + result ) * shadow;
+	lighting = ambient + (DirectResult + result) * shadow;
 
 
 	if ( gl_FrontFacing )

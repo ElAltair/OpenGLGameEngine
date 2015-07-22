@@ -13,6 +13,8 @@
 #include "Light.h"
 #include "Material.h"
 
+#include"Shader.h"
+
 
 void renderScene( Program& );
 void ContainterInitialize( );
@@ -43,6 +45,8 @@ bool ControlTheKeyboard = true;
 GLfloat cameraSpeed = 0.05f;
 
 
+bool isGuiDraw;
+bool isMouseCenter;
 
 GLuint ContainerVao;
 GLuint FloorVao;
@@ -91,11 +95,12 @@ void mouse_callback( GLFWwindow* window, double xpos, double ypos )
 	if ( ControlTheView )
 	{
 
-		if ( firstMouse )
+		if ( firstMouse || isMouseCenter == true )
 		{
 			lastX = xpos;
 			lastY = ypos;
 			firstMouse = false;
+			isMouseCenter = false;
 		}
 		GLfloat xoffset = xpos - lastX;
 		GLfloat yoffset = lastY - ypos;
@@ -131,7 +136,7 @@ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mo
 	if ( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS )
 		glfwSetWindowShouldClose( window, GL_TRUE );
 	else if ( key == GLFW_KEY_F8 && action == GLFW_PRESS )
-		glPolygonMode(GL_FRONT_AND_BACK , GL_LINE );
+		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	if ( action == GLFW_PRESS )
 		keys [key] = true;
 	else if ( action == GLFW_RELEASE )
@@ -143,6 +148,7 @@ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mo
 		CursorIsFree = true;
 		ControlTheView = false;
 		ControlTheKeyboard = false;
+		isGuiDraw = true;
 	}
 	else if ( action == GLFW_PRESS && key == GLFW_KEY_TAB && CursorIsFree == true )
 	{
@@ -151,6 +157,8 @@ void key_callback( GLFWwindow* window, int key, int scancode, int action, int mo
 		glfwSetInputMode( window, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
 		ControlTheView = true;
 		ControlTheKeyboard = true;
+		isGuiDraw = false;
+		isMouseCenter = true;
 	}
 	if ( key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS )
 	{
@@ -244,13 +252,6 @@ int main( void )
 
 
 	// Create manager, that initialize and create all programs
-	ProgramManager manager;
-	manager.readConfig( );
-	if ( !manager.createPrograms( ) )
-	{
-		getchar( );
-		return -1;
-	}
 
 	GLfloat quadVertices [ ] =
 	{
@@ -393,18 +394,56 @@ int main( void )
 
 
 
+	GLuint cubemapProgram;
+	cubemapProgram = glCreateProgram( );
+	Shader* CubeMapVertexShader = new Shader( "../Shader/VertexShader/pointShadowShader.vs", GL_VERTEX_SHADER );
+	Shader* CubeMapFragmentShader = new Shader( "../Shader/FragmentShader/pointShadowShader.frag", GL_FRAGMENT_SHADER );
+	Shader* CubeMapGeometry = new Shader( "../Shader/GeometryShader/pointShadowShader.gm", GL_GEOMETRY_SHADER );
+	if ( !CubeMapGeometry->compileShader( ) )
+		std::cout << "can't load geometry shader" << std::endl;
+	if ( !CubeMapVertexShader->compileShader( ) )
+		std::cout << "can't load vertex shader" << std::endl;
+	if ( !CubeMapFragmentShader->compileShader( ) )
+		std::cout << "can't load fragment shader" << std::endl;
+	glAttachShader( cubemapProgram, CubeMapVertexShader->returnShaderName( ) );
+	glAttachShader( cubemapProgram, CubeMapFragmentShader->returnShaderName( ) );
+	glAttachShader( cubemapProgram, CubeMapGeometry->returnShaderName( ) );
+	glLinkProgram( cubemapProgram );
+	GLint success;
+	glGetProgramiv( cubemapProgram, GL_COMPILE_STATUS, &success );
+	GLchar ProgramInfoLog [512];
+	if ( !success )
+	{
+		glGetProgramInfoLog( cubemapProgram, 512, NULL, ProgramInfoLog );
+		std::cout << "\tERROR :: PROGRAM :: " << "Cube map program" << "LINKING FAILED\n" << ProgramInfoLog << std::endl << std::endl;
+		return false;
+	}
+	std::cout << "PROGRAM :: " << "Cube map Program" << " LINKING COMPLETED \n" << std::endl << std::endl;
+	CubeMapVertexShader->deleteShader( );
+	delete CubeMapVertexShader;
+	CubeMapFragmentShader->deleteShader( );
+	delete CubeMapFragmentShader;
+	CubeMapGeometry->deleteShader( );
+	delete CubeMapGeometry;
 
+	ProgramManager manager;
+	manager.readConfig( );
+	if ( !manager.createPrograms( ) )
+	{
+		getchar( );
+		return -1;
+	}
 	// Get programs from manager by name
 	Program* mainProgram = manager.returnProgram( "mainProgram" );
 	Program* lightProgram = manager.returnProgram( "lightProgram" );
 	Program* simpleProgram = manager.returnProgram( "shadowProgram" );
 	Program* quadProgram = manager.returnProgram( "DepthQuad" );
-	Program* skyboxProgram = manager.returnProgram( "skyboxProgram");
-	if (  mainProgram == 0 )
+	Program* skyboxProgram = manager.returnProgram( "skyboxProgram" );
+	if ( mainProgram == 0 )
 		std::cout << "Wrong mainProgram" << std::endl;
-	else if (  lightProgram == 0 )
+	else if ( lightProgram == 0 )
 		std::cout << "Wrong lightProgram" << std::endl;
-	else if (  simpleProgram == 0 )
+	else if ( simpleProgram == 0 )
 		std::cout << "Wrong simpelProgram" << std::endl;
 	else if ( quadProgram == 0 )
 		std::cout << "Wrong quadProgram" << std::endl;
@@ -430,22 +469,22 @@ int main( void )
 	Material FloorMaterial( ambientMaterial, diffuseMaterial, specularMaterial, 32.0f );
 
 	glm::vec3 PointAmbientLight( 0.0f, 0.0f, 0.0f );
-	glm::vec3 PointDiffuseLight( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointDiffuseLight( 1.0f, 0.0f, 0.0f );
 	glm::vec3 PointSpecularLight( 0.4f, 0.2f, 0.2f );
 	glm::vec3 PointlightPosition = glm::vec3( 0.0f, 3.0f, -3.0f );
 
 	glm::vec3 PointAmbientLight2( 0.0f, 0.0f, 0.0f );
-	glm::vec3 PointDiffuseLight2( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointDiffuseLight2( 0.0f, 1.0f, 0.0f );
 	glm::vec3 PointSpecularLight2( 0.2f, 0.4f, 0.2f );
 	glm::vec3 PointlightPosition2 = glm::vec3( 0.0f, 3.0f, 2.0f );
 
 	glm::vec3 PointAmbientLight3( 0.0f, 0.0f, 0.0f );
-	glm::vec3 PointDiffuseLight3( 0.0f, 0.0f, 0.0f );
+	glm::vec3 PointDiffuseLight3( 0.0f, 0.0f, 1.0f );
 	glm::vec3 PointSpecularLight3( 0.2f, 0.2f, 0.4f );
 	glm::vec3 PointlightPosition3 = glm::vec3( -3.0f, 3.0f, 0.0f );
 
-	glm::vec3 DirectAmbientLight( 0.2f, 0.2f, 0.2f );
-	glm::vec3 DirectDiffuseLight( 0.5f, 0.5f, 0.5f );
+	glm::vec3 DirectAmbientLight( 0.1f, 0.1f, 0.1f );
+	glm::vec3 DirectDiffuseLight( 0.01f, 0.01f, 0.01f );
 	glm::vec3 DirectSpecularLight( 0.2f, 0.2f, 0.2f );
 
 	glm::vec3 DirectionalLightPosition = glm::vec3( 6.0f, 2.0f, 6.0f );
@@ -506,12 +545,12 @@ int main( void )
 	//faces.push_back( "../Resources/skybox/simple/bottom.jpg" );
 	//faces.push_back( "../Resources/skybox/simple/back.jpg");
 	//faces.push_back( "../Resources/skybox/simple/front.jpg" );
-	
+
 	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_rt.jpg" );
 	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_lf.jpg" );
 	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_up.jpg" );
 	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_dn.jpg" );
-	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_bk.jpg");
+	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_bk.jpg" );
 	faces.push_back( "../Resources/skybox/cloudy/yellowcloud_ft.jpg" );
 	GLuint skyBoxCubemap;
 	glGenTextures( 1, &skyBoxCubemap );
@@ -535,14 +574,14 @@ int main( void )
 
 	GLfloat skyboxVertices [ ] = {
 		// Positions          
-		-1.0f, 1.0f, -1.0f,  
+		-1.0f, 1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
 		1.0f, -1.0f, -1.0f,
 		1.0f, 1.0f, -1.0f,
 		-1.0f, 1.0f, -1.0f,
 
-		-1.0f, -1.0f, 1.0f,   
+		-1.0f, -1.0f, 1.0f,
 		-1.0f, -1.0f, -1.0f,
 		-1.0f, 1.0f, -1.0f,
 		-1.0f, 1.0f, -1.0f,
@@ -584,11 +623,49 @@ int main( void )
 	GLuint skyBoxVbo;
 	glGenBuffers( 1, &skyBoxVbo );
 	glBindBuffer( GL_ARRAY_BUFFER, skyBoxVbo );
-	glBufferData( GL_ARRAY_BUFFER, sizeof( skyboxVertices ), skyboxVertices, GL_STATIC_DRAW );
+	glBufferData( GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW );
 	glEnableVertexAttribArray( 0 );
-	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*) 0);
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*) 0 );
 	glBindVertexArray( 0 );
-	
+
+
+	GLuint depthCubeMap;
+	glGenTextures( 1, &depthCubeMap );
+	const GLuint depthCubeMapWidth = 1024, depthCubeMapHeight = 1024;
+	glBindTexture( GL_TEXTURE_CUBE_MAP, depthCubeMap );
+	for ( GLuint i = 0; i < 6; ++i )
+	{
+		glTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, depthCubeMapWidth, depthCubeMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+
+	};
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE );
+	GLuint depthCubeMapFbo;
+	glGenFramebuffers( 1, &depthCubeMapFbo );
+	glBindFramebuffer( GL_FRAMEBUFFER, depthCubeMapFbo );
+	glFramebufferTexture( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubeMap, 0 );
+	glDrawBuffer( GL_NONE );
+	glReadBuffer( GL_NONE );
+	if ( glCheckFramebufferStatus( GL_FRAMEBUFFER ) != GL_FRAMEBUFFER_COMPLETE )
+		std::cout << "Cube map frame buffer not complete" << std::endl;
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+	GLfloat cubemapAspect = (GLfloat) depthCubeMapWidth / (GLfloat) depthCubeMapHeight;
+	GLfloat nearCubemapPlane = 1.0f;
+	GLfloat farCubemapPlane = 25.0f;
+	glm::mat4 cubemapProj = glm::perspective( glm::radians(90.0f), cubemapAspect, nearCubemapPlane, farCubemapPlane );
+	std::vector<glm::mat4> shadowCubemapTransforms;
+	shadowCubemapTransforms.push_back( cubemapProj * glm::lookAt( PointlightPosition, PointlightPosition + glm::vec3( 1.0, 0.0, 0.0 ), glm::vec3( 0.0, -1.0, 0.0 ) ) );
+	shadowCubemapTransforms.push_back( cubemapProj * glm::lookAt( PointlightPosition, PointlightPosition + glm::vec3( -1.0, 0.0, 0.0 ), glm::vec3( 0.0, -1.0, 0.0 ) ) );
+	shadowCubemapTransforms.push_back( cubemapProj * glm::lookAt( PointlightPosition, PointlightPosition + glm::vec3( 0.0, 1.0, 0.0 ), glm::vec3( 0.0, 0.0, 1.0 ) ) );
+	shadowCubemapTransforms.push_back( cubemapProj * glm::lookAt( PointlightPosition, PointlightPosition + glm::vec3( 0.0, -1.0, 0.0 ), glm::vec3( 0.0, 0.0, -1.0 ) ) );
+	shadowCubemapTransforms.push_back( cubemapProj * glm::lookAt( PointlightPosition, PointlightPosition + glm::vec3( 0.0, 0.0, 1.0 ), glm::vec3( 0.0, -1.0, 0.0 ) ) );
+	shadowCubemapTransforms.push_back( cubemapProj * glm::lookAt( PointlightPosition, PointlightPosition + glm::vec3( 0.0, 0.0, -1.0 ), glm::vec3( 0.0, -1.0, 0.0 ) ) );
+
+
 
 
 
@@ -599,6 +676,8 @@ int main( void )
 
 	GLfloat near_plane = 1.0f;
 	GLfloat far_plane = 40.0f;
+
+
 	while ( !glfwWindowShouldClose( window ) )
 	{
 		directionVector.x = 5 * sin( glfwGetTime( ) * glm::radians( 60.0 ) );
@@ -834,14 +913,149 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glDisable( GL_CULL_FACE );
 		// end render from direct light Posititon
 
+		
 
+		// Render cube map texture from point light position
+
+		glViewport( 0, 0, depthCubeMapWidth, depthCubeMapHeight );
+		glBindFramebuffer( GL_FRAMEBUFFER, depthCubeMapFbo );
+		glClear( GL_DEPTH_BUFFER_BIT );
+
+		glUseProgram( cubemapProgram );
+		for ( GLuint i = 0; i < 6; ++i )
+		{
+			glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, ("ShadowMatrices[" + std::to_string( i ) + "]").c_str( ) ), 1, GL_FALSE, glm::value_ptr( shadowCubemapTransforms.at( i ) ) );
+		}
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, glm::vec3( 0.0f, 0.0f, 0.0f ) );
+
+		glBindVertexArray( ContainerVao );
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, glm::vec3( 2.0, 2.0, -2.0 ) );
+		modelMatrix = glm::rotate( modelMatrix, (GLfloat) (glfwGetTime( ))*glm::radians( 20.0f ), glm::vec3( 0.0, 1.0, 0.0 ) );
+		glBindVertexArray( ContainerVao );
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+
+		glBindVertexArray( ContainerVao );
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, directionVector );
+		modelMatrix = glm::rotate( modelMatrix, (GLfloat) (glfwGetTime( ))*glm::radians( 60.0f ), glm::vec3( 0.0, 1.0, 0.0 ) );
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		glBindVertexArray( 0 );
+		//glBindTexture(GL_TEXTURE_2D, 0);
+
+
+
+
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, PointlightPosition );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 0.5f, 0.5f, 0.5f ) );
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+		glBindVertexArray( LampVao );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		glBindVertexArray( 0 );
+
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, PointlightPosition2 );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 0.5f, 0.5f, 0.5f ) );
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+
+		glBindVertexArray( LampVao );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, PointlightPosition3 );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 0.5f, 0.5f, 0.5f ) );
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+
+		glBindVertexArray( LampVao );
+		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		glBindVertexArray( 0 );
+
+		glBindVertexArray( FloorVao );
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, glm::vec3( 0.0f, -0.55f, 0.0f ) );
+		//modelMatrix = glm::rotate(modelMatrix,glm::radians(90.0f),glm::vec3(1.0f,0.0f,0.0f));
+		//mainProgram->setUniformData("model", modelMatrix);
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+
+
+		glDrawArrays( GL_TRIANGLES, 0, 6 );
+		glBindVertexArray( 0 );
+		//glBindTexture(GL_TEXTURE_2D,0);
+
+
+		// Drawing walls
+		glBindVertexArray( WallVao );
+
+		// First wall
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, glm::vec3( -10.0f, 4.45f, 0.0f ) );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 1.0, 0.5f, 1.0f ) );
+		modelMatrix = glm::rotate( modelMatrix, glm::radians( -90.0f ), glm::vec3( 0.0f, 0.0f, 1.0f ) );
+		//mainProgram->setUniformData("model", modelMatrix);
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+
+		//	glActiveTexture(GL_TEXTURE0);
+		//	glUniform1i(glGetUniformLocation(shaderProgram, "dsmaterial.diffuseTexture"), 0);
+		//	glBindTexture(GL_TEXTURE_2D, WallTexture);
+
+		glDrawArrays( GL_TRIANGLES, 0, 6 );
+
+
+		modelMatrix = glm::mat4( );
+		modelMatrix = glm::translate( modelMatrix, glm::vec3( 0.0f, 4.45f, -10.0f ) );
+		modelMatrix = glm::scale( modelMatrix, glm::vec3( 1.0, 0.5f, 1.0f ) );
+		modelMatrix = glm::rotate( modelMatrix, glm::radians( -90.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
+		modelMatrix = glm::rotate( modelMatrix, glm::radians( -90.0f ), glm::vec3( 0.0f, 0.0f, 1.0f ) );
+		glUniformMatrix4fv( glGetUniformLocation( cubemapProgram, "model" ), 1, GL_FALSE, glm::value_ptr( modelMatrix ) );
+		glUniform1f( glGetUniformLocation( cubemapProgram, "far_plane" ), farCubemapPlane );
+		glUniform3f( glGetUniformLocation( cubemapProgram, "lightPos" ), PointlightPosition.x, PointlightPosition.y, PointlightPosition.z );
+
+		glDrawArrays( GL_TRIANGLES, 0, 6 );
+		glBindVertexArray( 0 );
+		glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+
+		// end render to cube map depth texture
+		
 
 		glViewport( 0, 0, WindowWidth, WindowHeight );
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-		
-		
 
 
+
+
+
+		if ( isGuiDraw )
+		{
 		quadProgram->use( );
 		glViewport( WindowWidth - 400, WindowHeight - 400, 300, 300 );
 		//glViewport(0, 0, WindowWidth, WindowHeight);
@@ -851,9 +1065,10 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glDrawArrays( GL_TRIANGLES, 0, 6 );
 		glBindVertexArray( 0 );
 		glBindTexture( GL_TEXTURE_2D, 0 );
-		
-		
-		
+
+		}
+
+
 
 
 		glViewport( 0, 0, WindowWidth, WindowHeight );
@@ -864,10 +1079,11 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		mainProgram->use( );
 
 
+		mainProgram->setUniformData( "far_plane", farCubemapPlane );
 		mainProgram->setUniformData( "view", viewMatrix );
 		mainProgram->setUniformData( "projection", projectionMatrix );
 		mainProgram->setUniformData( "lightSpaceMatrix", lightSpaceMatrix );
-		
+
 
 		mainProgram->setUniformData( "dirLight.ambient", DirectAmbientLight.x, DirectAmbientLight.y, DirectAmbientLight.z );
 		mainProgram->setUniformData( "dirLight.diffuse", DirectDiffuseLight.x, DirectDiffuseLight.y, DirectDiffuseLight.z );
@@ -912,8 +1128,12 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glActiveTexture( GL_TEXTURE2 );
 		glUniform1i( glGetUniformLocation( shaderProgram, "shadowMap" ), 2 );
 		glBindTexture( GL_TEXTURE_2D, depthMap );
+		glActiveTexture( GL_TEXTURE3 );
+		glUniform1i( glGetUniformLocation( shaderProgram, "depthCubeMap" ), 3 );
+		glBindTexture( GL_TEXTURE_CUBE_MAP, depthCubeMap );
 
 		mainProgram->setUniformData( "dsmaterial.shininess", CubeMaterial.getShininess( ) );
+		mainProgram->setUniformData( "far_plane", farCubemapPlane );
 		mainProgram->setUniformData( "IsShadow", 1.0 );
 
 		//glActiveTexture(GL_TEXTURE0);
@@ -925,8 +1145,9 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glBindVertexArray( ContainerVao );
 		glDrawArrays( GL_TRIANGLES, 0, 36 );
 
-		
-		
+
+
+
 		modelMatrix = glm::mat4( );
 		modelMatrix = glm::translate( modelMatrix, glm::vec3( 2.0f, 2.0f, -2.0f ) );
 		modelMatrix = glm::rotate( modelMatrix, (GLfloat) (glfwGetTime( ))*glm::radians( 20.0f ), glm::vec3( 0.0, 1.0, 0.0 ) );
@@ -940,7 +1161,7 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glDrawArrays( GL_TRIANGLES, 0, 36 );
 		glBindVertexArray( 0 );
 		glBindTexture( GL_TEXTURE_2D, 0 );
-		
+
 
 		lightProgram->use( );
 
@@ -992,8 +1213,12 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glActiveTexture( GL_TEXTURE2 );
 		glBindTexture( GL_TEXTURE_2D, depthMap );
 		glUniform1i( glGetUniformLocation( shaderProgram, "shadowMap" ), 2 );
+		glActiveTexture( GL_TEXTURE3 );
+		glUniform1i( glGetUniformLocation( shaderProgram, "depthCubeMap" ), 3 );
+		glBindTexture( GL_TEXTURE_CUBE_MAP, depthCubeMap );
 
 		mainProgram->setUniformData( "material.shininess", FloorMaterial.getShininess( ) );
+		mainProgram->setUniformData( "far_plane", farCubemapPlane );
 
 
 		glBindVertexArray( FloorVao );
@@ -1003,6 +1228,7 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		mainProgram->setUniformData( "lightSpaceMatrix", lightSpaceMatrix );
 		mainProgram->setUniformData( "view", viewMatrix );
 		mainProgram->setUniformData( "projection", projectionMatrix );
+		mainProgram->setUniformData( "far_plane", farCubemapPlane );
 
 
 		glDrawArrays( GL_TRIANGLES, 0, 6 );
@@ -1022,6 +1248,7 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		mainProgram->setUniformData( "projection", projectionMatrix );
 		mainProgram->setUniformData( "model", modelMatrix );
 		mainProgram->setUniformData( "lightSpaceMatrix", lightSpaceMatrix );
+		mainProgram->setUniformData( "far_plane", farCubemapPlane );
 
 		glActiveTexture( GL_TEXTURE0 );
 		glBindTexture( GL_TEXTURE_2D, WallTextures [0] );
@@ -1032,6 +1259,9 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glActiveTexture( GL_TEXTURE2 );
 		glBindTexture( GL_TEXTURE_2D, depthMap );
 		glUniform1i( glGetUniformLocation( shaderProgram, "shadowMap" ), 2 );
+		glActiveTexture( GL_TEXTURE3 );
+		glUniform1i( glGetUniformLocation( shaderProgram, "depthCubeMap" ), 3 );
+		glBindTexture( GL_TEXTURE_CUBE_MAP, depthCubeMap );
 
 		glDrawArrays( GL_TRIANGLES, 0, 6 );
 
@@ -1042,12 +1272,13 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		modelMatrix = glm::rotate( modelMatrix, glm::radians( -90.0f ), glm::vec3( 0.0f, 1.0f, 0.0f ) );
 		modelMatrix = glm::rotate( modelMatrix, glm::radians( -90.0f ), glm::vec3( 0.0f, 0.0f, 1.0f ) );
 		mainProgram->setUniformData( "model", modelMatrix );
+		mainProgram->setUniformData( "far_plane", farCubemapPlane );
 
 		glDrawArrays( GL_TRIANGLES, 0, 6 );
 		glBindTexture( GL_TEXTURE_2D, 0 );
 
 
-	    	
+
 
 		glDepthFunc( GL_LEQUAL );
 		skyboxProgram->use( );
@@ -1061,14 +1292,14 @@ mainProgram->setUniformData("viewPos", cameraPos.x, cameraPos.y, cameraPos.z);
 		glDrawArrays( GL_TRIANGLES, 0, 36 );
 		glBindTexture( GL_TEXTURE_CUBE_MAP, 0 );
 		glBindVertexArray( 0 );
-		glDepthFunc(GL_LESS); 
+		glDepthFunc( GL_LESS );
 
 
 		//	glBindVertexArray(Quad);
 		//	glDrawArrays(GL_TRIANGLES, 0, 6);
 		//	glBindVertexArray(0);
 
-		
+
 
 
 
@@ -1199,10 +1430,10 @@ void WallInitialize( )
 	GLfloat WallTextureCoordinates [ ] =
 	{
 		0.0f, 0.0f,
-		4.0f, 0.0f,
-		4.0f, 4.0f,
-		4.0f, 4.0f,
-		0.0f, 4.0f,
+		6.0f, 0.0f,
+		6.0f, 6.0f,
+		6.0f, 6.0f,
+		0.0f, 6.0f,
 		0.0f, 0.0f
 
 	};
