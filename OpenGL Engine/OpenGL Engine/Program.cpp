@@ -101,6 +101,13 @@ void Program::setUniformData(const GLchar* name, GLfloat f1,GLfloat f2, GLfloat 
 	GLuint location = glGetUniformLocation(ProgramNameGL, name);
 	glUniform3f(location,f1,f2,f3);
 }
+
+void Program::setUniformData(const GLchar* name, glm::vec3& vec)
+{
+	GLuint location = glGetUniformLocation(ProgramNameGL, name);
+	glUniform3f(location,vec.x,vec.y,vec.z);
+
+}
 void Program::setUniformData(const GLchar* name, glm::mat4& matrix)
 {
 	GLuint location = glGetUniformLocation(ProgramNameGL, name);

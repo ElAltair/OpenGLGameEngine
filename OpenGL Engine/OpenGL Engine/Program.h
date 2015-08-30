@@ -30,6 +30,7 @@ public:
 	void setUniformData(const GLchar* name,GLfloat data);
 	void setUniformData(const GLchar* name,GLfloat f1,GLfloat f2);
 	void setUniformData(const GLchar* name,GLfloat f1, GLfloat f2, GLfloat f3);
+	void setUniformData(const GLchar* name,glm::vec3&);
 	void setUniformData(const GLchar* name, glm::mat4& matrix);
 	void setMaterial(Material& material);
 	void setLight(DirectionalLight& light);

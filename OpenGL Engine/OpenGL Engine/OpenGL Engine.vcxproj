@@ -70,6 +70,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GUIMain.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -78,6 +79,7 @@
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GUIMain.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Program.h" />
@@ -87,6 +89,7 @@
   <ItemGroup>
     <None Include="..\Shaders\FragmentShader\directionalLight.frag" />
     <None Include="..\Shaders\FragmentShader\emptyShader.frag" />
+    <None Include="..\Shaders\FragmentShader\gui.frag" />
     <None Include="..\Shaders\FragmentShader\lamp.frag" />
     <None Include="..\Shaders\FragmentShader\light.frag" />
     <None Include="..\Shaders\FragmentShader\pointShadowShader.frag" />
@@ -97,6 +100,7 @@
     <None Include="..\Shaders\GeometryShader\pointShadowShader.gm" />
     <None Include="..\Shaders\ProgramManager.conf" />
     <None Include="..\Shaders\templeShaderPart.shader" />
+    <None Include="..\Shaders\VertexShader\gui.vs" />
     <None Include="..\Shaders\VertexShader\pointShadowShader.vs" />
     <None Include="..\Shaders\VertexShader\position.vs" />
     <None Include="..\Shaders\VertexShader\depthShader.vs" />

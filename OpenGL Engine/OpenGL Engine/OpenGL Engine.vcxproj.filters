@@ -37,6 +37,9 @@
     <Filter Include="Shaders\GeometricShader">
       <UniqueIdentifier>{c6182861-7167-4356-ab07-9c29e826bac6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUISystem">
+      <UniqueIdentifier>{d186aa5b-4001-4a50-8e27-f31c6079b255}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -57,6 +60,9 @@
     <ClCompile Include="Light.cpp">
       <Filter>LightSystem</Filter>
     </ClCompile>
+    <ClCompile Include="GUIMain.cpp">
+      <Filter>GUISystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -73,6 +79,9 @@
     </ClInclude>
     <ClInclude Include="Light.h">
       <Filter>LightSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIMain.h">
+      <Filter>GUISystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +135,12 @@
     </None>
     <None Include="..\Shaders\GeometryShader\pointShadowShader.gm">
       <Filter>Shaders\GeometricShader</Filter>
+    </None>
+    <None Include="..\Shaders\VertexShader\gui.vs">
+      <Filter>Shaders\VertexShader</Filter>
+    </None>
+    <None Include="..\Shaders\FragmentShader\gui.frag">
+      <Filter>Shaders\FragmentShader</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

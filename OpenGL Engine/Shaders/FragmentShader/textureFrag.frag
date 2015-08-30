@@ -1,4 +1,4 @@
-#version 450 core
+#version 420 core
 
 in VShader_out
 {
