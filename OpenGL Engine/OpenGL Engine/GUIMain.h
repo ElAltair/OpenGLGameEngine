@@ -22,14 +22,24 @@ class Event
 {
 public:
 	Event( ) { };
-	~Event( ) { };
+	virtual ~Event( ) { };
 };
 
 
 class MouseEvent : public Event
 {
 public:
-	MouseEvent(float _xpos, float _ypos, int button) :xpos(_xpos),ypos(_ypos),MouseButton(button) { cout << "Xpos = "<< xpos << " Ypos = "<<ypos<< " Button = "  << MouseButton << endl; };
+	MouseEvent(float _xpos, float _ypos, int button) :xpos(_xpos),ypos(_ypos),MouseButton(button) { 
+	//	cout << "Xpos = "<< xpos << " Ypos = "<<ypos<< " Button = "  << MouseButton << endl; 
+	};
+	MouseEvent( float _xpos, float _ypos ) : xpos( _xpos ), ypos( _ypos ), MouseButton( INT_MAX )
+	{
+	//	cout << "Xpos = "<< xpos << " Ypos = "<<ypos<< endl; 
+	}
+	inline float getXpos( void ) { return xpos; };
+	inline float getYpos( void ) { return ypos; };
+	~MouseEvent( ) { };
+
 
 private:
 	float xpos;
@@ -40,8 +50,11 @@ private:
 
 class KeyboardEvent : public Event
 {
+public:
+	KeyboardEvent( ) { keyboardButton = 0; };
 
-
+private: 
+	float keyboardButton;
 
 };
 
@@ -50,7 +63,8 @@ class EventQueue
 public:
 	EventQueue( ) { };
 	void addEvent(Event* ev) { eventQueue.push(ev); };
-	Event* getNextEvent( ) { return eventQueue.front( ); };
+	Event* getNextEvent( ) { Event* tmp = eventQueue.front( ); eventQueue.pop( ); return tmp; };
+	void printEventQueue( void );
 
 private:
 	queue<Event*> eventQueue;
@@ -103,7 +117,10 @@ public:
 	virtual ~GUIBase( );
 	virtual void Draw( ) = 0;
 	virtual bool colladeWithMouse(double MouseXpos,double MouseYpos) = 0;
-	virtual void onMouseMove( double MouseXpos,double MouseYpos) = 0;
+//	virtual void onMouseMove( double MouseXpos,double MouseYpos) = 0;
+	virtual bool checkEvent( Event* ) = 0;
+	virtual void makeEvent( Event* ) = 0;
+	virtual string ReturnGUIName( void ) = 0;
 
 protected:
 	GUIBase( );
@@ -121,7 +138,7 @@ class GUIWindow :public GUIBase
 {
 public:
 
-	GUIWindow(float posx, float posy, float _width, float _height);
+	GUIWindow(float posx, float posy, float _width, float _height, const char*_Name);
 
 	void setBaseContent(GUIBaseContent*);
 	inline GUIBaseContent* getBaseContent(void) { return BaseContent; };
@@ -133,7 +150,10 @@ public:
 
 	void Draw( );
 	bool colladeWithMouse(double MouseXPos, double MouseYpos);
-	void onMouseMove(double MouseXpos, double MouseYpos);
+//	void onMouseMove(double MouseXpos, double MouseYpos);
+	bool checkEvent( Event* );
+	void makeEvent( Event* );
+	string ReturnGUIName( void ) { return Name; };
 
 	~GUIWindow( );
 
@@ -153,6 +173,7 @@ private:
 	float Height;
 	float PosX;
 	float PosY;
+	string Name;
 
 	//GUI functions
 
@@ -186,10 +207,14 @@ public:
 	bool isEnd( void );
 	void nextElement(void);
 	GUIBase* getElement(void);
-	void performEvent(void);
+	void performEvent();
+
+	inline void addLinkToEventQueue( EventQueue* qu ) { eventQueue = qu; };
 private:
 	list<GUIBase*>::const_iterator listIterator;
 	list<GUIBase*> listGuiElements;
+
+	EventQueue* eventQueue;
 
 };
 #endif

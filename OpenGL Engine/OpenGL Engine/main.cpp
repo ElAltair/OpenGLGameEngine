@@ -79,7 +79,7 @@ void GUIMouse(double xpos, double ypos)
 	while (!guiManager.isEnd( ))
 	{
 		GUIBase* tmp = guiManager.getElement( );
-		tmp->onMouseMove(xpos, ypos);
+		//tmp->onMouseMove(xpos, ypos);
 		guiManager.nextElement( );
 	}
 
@@ -124,7 +124,7 @@ void mouse_buttonCallback(GLFWwindow* Window, int button, int action, int mods)
 		{
 			MouseEvent* click = new MouseEvent(ClickPosX,ClickPosY,button);
 			GUIQueue.addEvent(click);
-			guiManager.performEvent( );
+			guiManager.performEvent();
 		
 		}
 	}
@@ -169,9 +169,11 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	}
 	else if (isGuiDraw == true)
 	{
-	//	GUIMouse(xpos, ypos);
 		ClickPosX = xpos;
 		ClickPosY = ypos;
+	//	MouseEvent* movement = new MouseEvent( ClickPosX, ClickPosX );
+		//GUIQueue.addEvent( movement );
+		//guiManager.performEvent(movement );
 	}
 
 
@@ -192,6 +194,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		isWireframed = false;
+	}
+	if ( key == GLFW_KEY_Q && action == GLFW_PRESS )
+	{
+		KeyboardEvent* tmpEvent = new KeyboardEvent( );
+		GUIQueue.addEvent( tmpEvent );
+		guiManager.performEvent( );
 	}
 	if (action == GLFW_PRESS)
 		keys [key] = true;
@@ -346,13 +354,13 @@ void CreateGuiInterface(Program* GuiProgram)
 {
 
 	GUIBaseContent* MainGuiContent = new GUIBaseContent(WindowWidth, WindowHeight, GuiProgram);
-	GUIWindow* guiWindow = new GUIWindow(200, 600, 300, 400);
-	GUIWindow* guiSecondWindow = new GUIWindow(WindowWidth - 200 - 500, 600, 300, 400);
-	GUIWindow* guiLittleButton = new GUIWindow(0, WindowHeight / 2, 50, 50);
-	GUIWindow* guiWhitePlank = new GUIWindow(203, 597, 296, 20);
-	GUIWindow* guiSecondWhitePlank = new GUIWindow(WindowWidth - 200 - 500 - 3, 597, 296, 20);
-	GUIWindow* redSquare = new GUIWindow(203 + 296 - 20, 597, 20, 20);
-	GUIWindow* redSecondSquare = new GUIWindow(WindowWidth - 200 - 500 + 300 - 20, 597, 20, 20);
+	GUIWindow* guiWindow = new GUIWindow(200, 600, 300, 400,"Left window");
+	GUIWindow* guiSecondWindow = new GUIWindow(WindowWidth - 200 - 500, 600, 300, 400,"Right window");
+	GUIWindow* guiLittleButton = new GUIWindow(0, WindowHeight / 2, 50, 50,"Black button");
+	GUIWindow* guiWhitePlank = new GUIWindow(203, 597, 296, 20,"White left plank");
+	GUIWindow* guiSecondWhitePlank = new GUIWindow( WindowWidth - 200 - 500 - 3, 597, 296, 20, "White write plank" );
+	GUIWindow* redSquare = new GUIWindow( 203 + 296 - 20, 597, 20, 20, "Red left button" );
+	GUIWindow* redSecondSquare = new GUIWindow( WindowWidth - 200 - 500 + 300 - 20, 597, 20, 20, "Red right button" );
 
 	guiWindow->setBackGroundColor((glm::vec3(0.2, 0.2, 0.2)));
 	guiSecondWindow->setBackGroundColor((glm::vec3(0.2, 0.2, 0.2)));
@@ -380,6 +388,8 @@ void CreateGuiInterface(Program* GuiProgram)
 	guiManager.addElement(guiWindow);
 	guiManager.addElement(guiLittleButton);
 	//guiManager.addElement(guiWhitePlank);
+
+	guiManager.addLinkToEventQueue( &GUIQueue );
 
 
 }

@@ -23,11 +23,15 @@ bool GUIBase::isVisible( void )
 	return VisibleState;
 }
 
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-GUIWindow::GUIWindow( float posx, float posy, float _width, float _height ) : PosX( posx ), PosY( posy ), Width( _width ), Height( _height ), GUIBase( )
+GUIWindow::GUIWindow( float posx, float posy, float _width, float _height, const char* _Name ) : PosX( posx ), PosY( posy ), Width( _width ), Height( _height ), GUIBase( )
 {
+	Name = _Name;
+
 	isInitialized = false;
 }
 
@@ -35,6 +39,9 @@ void GUIWindow::setBaseContent( GUIBaseContent* _content )
 {
 	BaseContent = _content;
 }
+
+
+
 
 void GUIWindow::Draw( )
 {
@@ -90,7 +97,79 @@ void GUIWindow::drawChilds( )
 
 }
 
+bool GUIWindow::checkEvent( Event* ev)
+{
+    MouseEvent* mouseEvent = dynamic_cast<MouseEvent*>(ev);
+	if ( mouseEvent != NULL )
+	{
+		float tmpXPos = mouseEvent->getXpos( );
+		float tmpYPos = mouseEvent->getYpos( );
+		if ( inheriterList.empty( ) )
+		{
+			if ( colladeWithMouse( tmpXPos, tmpYPos ) )
+			{
+				cout << Name << " collade " << endl;
+//				cout << Name << " Width = " << Width << " Height = " << Height << " PosX = " << PosX << " PosY = " << PosY << endl;
+//				cout << "Mouse X = " << tmpXPos << " Mouse Y = " << tmpYPos << endl;
+				return true;
+			}
+			else
+			{
+				cout << Name << " not collade" << endl << endl;;
+				return false;
+			}
 
+		}
+		else
+		{
+			if ( !colladeWithMouse( tmpXPos, tmpYPos ) )
+			{
+				cout << Name << " not collade" << endl << endl;;
+				return false;
+			}
+			/*
+			else
+			{
+				cout << "Main window " << Name << " collade" << endl;
+			}
+			*/
+			for ( auto inhIterator = inheriterList.rbegin( ); inhIterator != inheriterList.rend( ); ++inhIterator )
+			{
+				if ( (*inhIterator)->colladeWithMouse( tmpXPos, tmpYPos ) )
+				{
+					cout << (*inhIterator)->ReturnGUIName( ) << " collade" << endl;
+				//	cout << (*inhIterator)->ReturnGUIName() << " Width = " << Width << " Height = " << Height << " PosX = " << PosX << " PosY = " << PosY << endl;
+			//		cout << "Mouse X = " << tmpXPos << " Mouse Y = " << tmpYPos << endl;
+					return true;
+
+				}
+				else
+				{
+					cout << (*inhIterator)->ReturnGUIName( ) << " not collade" << endl << endl;
+				}
+			}
+			cout << Name << " collade" << endl;
+			return true;
+			
+
+		}
+		
+	}
+	else
+	{
+		cout << "NULL" << endl;
+		return false;
+	}
+	return false;
+}
+
+void GUIWindow::makeEvent( Event* ev )
+{
+	if (backgroundColor == glm::vec3( 1.0, 0.0, 0.0 ))
+	setBackGroundColor( glm::vec3( 0.2, 0.2, 0.2 ));
+	if ( dynamic_cast<MouseEvent*>(ev) != NULL && Name == "Right window" )
+		setBackGroundColor( glm::vec3( 1.0, 0.0, 0.0 ) );
+}
 
 bool GUIWindow::colladeWithMouse( double xpos, double ypos )
 {
@@ -105,6 +184,7 @@ bool GUIWindow::colladeWithMouse( double xpos, double ypos )
 	return false;
 }
 
+/*
 void GUIWindow::onMouseMove( double MouseXpos, double MouseYpos )
 {
 	if ( colladeWithMouse( MouseXpos, MouseYpos ) )
@@ -112,6 +192,7 @@ void GUIWindow::onMouseMove( double MouseXpos, double MouseYpos )
 	else
 		setBackGroundColor( 1.0, 1.0, 0.0 );
 }
+*/
 
 void GUIWindow::Initialize( )
 {
@@ -286,8 +367,44 @@ void GUIManager::nextElement( )
 	listIterator++;
 }
 
-void GUIManager::performEvent( )
+void GUIManager::performEvent()
 {
+	Event* FirstEventInQueue = eventQueue->getNextEvent( );
+	/*
+	if ( dynamic_cast<MouseEvent*>(FirstEventInQueue) !=NULL )
+	{
+		cout << "MOUSE" << endl;
+	}
+	if ( dynamic_cast<KeyboardEvent*>(FirstEventInQueue) != NULL )
+	{
+		cout << "KEYBOARD" << endl;
+	}
+	*/
+	for ( auto iter = listGuiElements.begin( ); iter != listGuiElements.end( ); ++iter )
+	{
+		if ( (*iter)->checkEvent( FirstEventInQueue ) )
+		{
+			(*iter)->makeEvent( FirstEventInQueue );
+			break;
+		}
+		
+	}
 
+	cout << endl;
+	cout << endl;
+	cout << endl;
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void EventQueue::printEventQueue( void )
+{
+	int i = 0;
+	while ( !eventQueue.empty( ) )
+	{
+		cout << " i  - " << eventQueue.front( ) << endl;
+		++i;
+		eventQueue.pop( );
+	}
 
 }
+
