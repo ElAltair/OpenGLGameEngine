@@ -110,6 +110,8 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+class GUIWindow;
+class GUIManager;
 
 class GUIBase
 {
@@ -118,8 +120,8 @@ public:
 	virtual void Draw( ) = 0;
 	virtual bool colladeWithMouse(double MouseXpos,double MouseYpos) = 0;
 //	virtual void onMouseMove( double MouseXpos,double MouseYpos) = 0;
-	virtual bool checkEvent( Event* ) = 0;
-	virtual void makeEvent( Event* ) = 0;
+	virtual GUIBase* checkEvent( Event* ) = 0;
+	virtual void makeEvent(GUIWindow*,GUIWindow*,GUIManager* ) = 0;
 	virtual string ReturnGUIName( void ) = 0;
 
 protected:
@@ -133,6 +135,10 @@ private:
 
 };
 
+typedef void (*WindowClickEvent)(GUIWindow *window);
+typedef void (*WindowAllClickEvent)(GUIManager* mg);
+typedef void (*WindowHideEvent)(GUIWindow* mg);
+typedef void (*WindowUnHideEvent)(GUIManager* mg);
 
 class GUIWindow :public GUIBase
 {
@@ -144,15 +150,19 @@ public:
 	inline GUIBaseContent* getBaseContent(void) { return BaseContent; };
 	inline void addChild(GUIBase* child) { inheriterList.push_back(child); };
 
-	inline void setBackGroundColor(glm::vec3 color) { backgroundColor = color; };
-	inline void setBackGroundColor(float c1, float c2, float c3) { backgroundColor.x = c1; backgroundColor.y = c2, backgroundColor.z = c3; };
+	inline void setBackGroundColor( glm::vec3 color ) { backgroundColor = color; };
+	inline void setBackGroundColor( float c1, float c2, float c3 ) { backgroundColor.x = c1; backgroundColor.y = c2, backgroundColor.z = c3; };
+	inline void setStandartBackGroundColor( glm::vec3 color ) { standardBackgoundColor = color; backgroundColor = color; };
+	inline void setStandartBackGroundColor( float c1, float c2, float c3 ) { backgroundColor.x = c1; backgroundColor.y = c2, backgroundColor.z = c3; standardBackgoundColor.x = c1; standardBackgoundColor.y = c2; standardBackgoundColor.z = c3; };
+	inline void getStandardBackGroundColor( void ) { backgroundColor = standardBackgoundColor; };
 	inline void hide( ) { setVisible(false); };
+	inline void unHide( ) { setVisible( true ); };
 
 	void Draw( );
 	bool colladeWithMouse(double MouseXPos, double MouseYpos);
 //	void onMouseMove(double MouseXpos, double MouseYpos);
-	bool checkEvent( Event* );
-	void makeEvent( Event* );
+	GUIBase* checkEvent( Event* );
+	void makeEvent(GUIWindow*,GUIWindow*,GUIManager*);
 	string ReturnGUIName( void ) { return Name; };
 
 	~GUIWindow( );
@@ -165,7 +175,13 @@ public:
 	glm::vec3 getBackgroundColor(void) { return backgroundColor; };
 	GLuint getWindowVao(void) { return WindowVao; };
 
+	
+	WindowClickEvent onClickEvent;
+	WindowAllClickEvent onClickAllEvent;
+	WindowHideEvent onClickHideEvent;
+	WindowUnHideEvent onClickUnhideAll;
 private:
+
 
 	GUIBaseContent* BaseContent;
 
@@ -194,6 +210,8 @@ private:
 	GLuint WindowVbo;
 
 	glm::vec3 backgroundColor;
+
+	glm::vec3 standardBackgoundColor;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -62,7 +62,7 @@ void GUIWindow::Draw( )
 		}
 		else
 		{
-			cout << "Invisible" << endl;
+		//	cout << "Invisible" << endl;
 		}
 
 	}
@@ -97,7 +97,7 @@ void GUIWindow::drawChilds( )
 
 }
 
-bool GUIWindow::checkEvent( Event* ev)
+GUIBase* GUIWindow::checkEvent( Event* ev)
 {
     MouseEvent* mouseEvent = dynamic_cast<MouseEvent*>(ev);
 	if ( mouseEvent != NULL )
@@ -108,15 +108,15 @@ bool GUIWindow::checkEvent( Event* ev)
 		{
 			if ( colladeWithMouse( tmpXPos, tmpYPos ) )
 			{
-				cout << Name << " collade " << endl;
+				cout << Name << " collade (parent)" << endl;
 //				cout << Name << " Width = " << Width << " Height = " << Height << " PosX = " << PosX << " PosY = " << PosY << endl;
 //				cout << "Mouse X = " << tmpXPos << " Mouse Y = " << tmpYPos << endl;
-				return true;
+				return this;
 			}
 			else
 			{
 				cout << Name << " not collade" << endl << endl;;
-				return false;
+				return NULL;
 			}
 
 		}
@@ -125,7 +125,7 @@ bool GUIWindow::checkEvent( Event* ev)
 			if ( !colladeWithMouse( tmpXPos, tmpYPos ) )
 			{
 				cout << Name << " not collade" << endl << endl;;
-				return false;
+				return NULL;
 			}
 			/*
 			else
@@ -140,7 +140,7 @@ bool GUIWindow::checkEvent( Event* ev)
 					cout << (*inhIterator)->ReturnGUIName( ) << " collade" << endl;
 				//	cout << (*inhIterator)->ReturnGUIName() << " Width = " << Width << " Height = " << Height << " PosX = " << PosX << " PosY = " << PosY << endl;
 			//		cout << "Mouse X = " << tmpXPos << " Mouse Y = " << tmpYPos << endl;
-					return true;
+					return *inhIterator;
 
 				}
 				else
@@ -149,7 +149,7 @@ bool GUIWindow::checkEvent( Event* ev)
 				}
 			}
 			cout << Name << " collade" << endl;
-			return true;
+			return this;
 			
 
 		}
@@ -158,17 +158,29 @@ bool GUIWindow::checkEvent( Event* ev)
 	else
 	{
 		cout << "NULL" << endl;
-		return false;
+		return NULL;
 	}
-	return false;
+	return NULL;
 }
 
-void GUIWindow::makeEvent( Event* ev )
+void GUIWindow::makeEvent( GUIWindow* source,GUIWindow* target,GUIManager* mg )
 {
-	if (backgroundColor == glm::vec3( 1.0, 0.0, 0.0 ))
-	setBackGroundColor( glm::vec3( 0.2, 0.2, 0.2 ));
-	if ( dynamic_cast<MouseEvent*>(ev) != NULL && Name == "Right window" )
-		setBackGroundColor( glm::vec3( 1.0, 0.0, 0.0 ) );
+	if ( onClickHideEvent )
+	{
+		onClickHideEvent( target );
+	}
+	if ( source == target && onClickUnhideAll )
+	{
+		onClickUnhideAll( mg );
+	}
+	if ( source == target  && onClickAllEvent)
+	{
+		onClickAllEvent( mg );
+	}
+	else if ( onClickEvent )
+	{
+		onClickEvent( target );
+	}
 }
 
 bool GUIWindow::colladeWithMouse( double xpos, double ypos )
@@ -382,9 +394,14 @@ void GUIManager::performEvent()
 	*/
 	for ( auto iter = listGuiElements.begin( ); iter != listGuiElements.end( ); ++iter )
 	{
-		if ( (*iter)->checkEvent( FirstEventInQueue ) )
+		GUIBase* tmp = (*iter)->checkEvent( FirstEventInQueue );
+		if(tmp!=NULL)
 		{
-			(*iter)->makeEvent( FirstEventInQueue );
+			cout << " MY name is " << tmp->ReturnGUIName( ) << endl;
+//			(*iter)->makeEvent( FirstEventInQueue );
+			GUIWindow* sourceWindow = dynamic_cast<GUIWindow*>(tmp);
+			GUIWindow* tmpWindow = dynamic_cast<GUIWindow*>(*iter);
+			tmp->makeEvent(sourceWindow,tmpWindow,this);
 			break;
 		}
 		

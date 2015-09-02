@@ -18,6 +18,11 @@
 
 #include <vector>
 
+
+// Randomize
+#include <cstdlib>
+#include <ctime>
+
 GUIBase* base;
 
 void renderScene(Program&);
@@ -348,7 +353,45 @@ void drawGui(void)
 
 
 }
+void onButton1Click(GUIWindow* target)
+{
+	std::srand( std::time( 0 ) );
+	float rv = static_cast<float> (std::rand( )) / static_cast<float>(RAND_MAX) ;
+	float rv2= static_cast<float> (std::rand( )) / static_cast<float>(RAND_MAX) ;
+	float rv3= static_cast<float> (std::rand( )) / static_cast<float>(RAND_MAX) ;
+	target->setBackGroundColor( glm::vec3( rv,rv2,rv3) );
+}
+void onButton2Click( GUIManager* mg )
+{
+//	Window->setBackGroundColor( glm::vec3( 1.0, 0.0, 0.0 ) );
+	mg->makeFirst( );
+	while ( !mg->isEnd( ) )
+	{
+	GUIBase* tmpElement = mg->getElement( );
+	GUIWindow* window = dynamic_cast<GUIWindow*>(tmpElement);
+	window->getStandardBackGroundColor( );
+	mg->nextElement( );
+	}
+	
+	
+	
+}
+void hideWindow( GUIWindow* window )
+{
+	window->hide( );
+}
+void unHideWindows( GUIManager* mg )
+{
+	mg->makeFirst( );
+	while ( !mg->isEnd( ) )
+	{
+	GUIBase* tmpElement = mg->getElement( );
+	GUIWindow* window = dynamic_cast<GUIWindow*>(tmpElement);
+	window->unHide( );
+	mg->nextElement( );
+	}
 
+}
 
 void CreateGuiInterface(Program* GuiProgram)
 {
@@ -361,14 +404,16 @@ void CreateGuiInterface(Program* GuiProgram)
 	GUIWindow* guiSecondWhitePlank = new GUIWindow( WindowWidth - 200 - 500 - 3, 597, 296, 20, "White write plank" );
 	GUIWindow* redSquare = new GUIWindow( 203 + 296 - 20, 597, 20, 20, "Red left button" );
 	GUIWindow* redSecondSquare = new GUIWindow( WindowWidth - 200 - 500 + 300 - 20, 597, 20, 20, "Red right button" );
+	GUIWindow* guiSecondLittleButton = new GUIWindow( 0, WindowHeight / 2 + 100, 50, 50, "Green button" );
 
-	guiWindow->setBackGroundColor((glm::vec3(0.2, 0.2, 0.2)));
-	guiSecondWindow->setBackGroundColor((glm::vec3(0.2, 0.2, 0.2)));
-	guiLittleButton->setBackGroundColor((glm::vec3(0.1, 0.1, 0.1)));
-	guiWhitePlank->setBackGroundColor((glm::vec3(1.0, 1.0, 1.0)));
-	redSquare->setBackGroundColor(glm::vec3(1.0, 0.0, 0.0));
-	guiSecondWhitePlank->setBackGroundColor(glm::vec3(1.0, 1.0, 1.0));
-	redSecondSquare->setBackGroundColor(glm::vec3(1.0, 0.0, 0.0));
+	guiWindow->setStandartBackGroundColor((glm::vec3(0.2, 0.2, 0.2)));
+	guiSecondWindow->setStandartBackGroundColor((glm::vec3(0.2, 0.2, 0.2)));
+	guiLittleButton->setStandartBackGroundColor((glm::vec3(0.1, 0.1, 0.1)));
+	guiWhitePlank->setStandartBackGroundColor((glm::vec3(1.0, 1.0, 1.0)));
+	redSquare->setStandartBackGroundColor(glm::vec3(1.0, 0.0, 0.0));
+	guiSecondWhitePlank->setStandartBackGroundColor(glm::vec3(1.0, 1.0, 1.0));
+	redSecondSquare->setStandartBackGroundColor(glm::vec3(1.0, 0.0, 0.0));
+	guiSecondLittleButton->setStandartBackGroundColor( glm::vec3( 0.0, 1.0, 0.0 ) );
 
 	guiWindow->setBaseContent(MainGuiContent);
 	guiSecondWindow->setBaseContent(MainGuiContent);
@@ -377,6 +422,7 @@ void CreateGuiInterface(Program* GuiProgram)
 	redSquare->setBaseContent(MainGuiContent);
 	guiSecondWhitePlank->setBaseContent(MainGuiContent);
 	redSecondSquare->setBaseContent(MainGuiContent);
+	guiSecondLittleButton->setBaseContent( MainGuiContent );
 
 	guiWindow->addChild(guiWhitePlank);
 	guiWindow->addChild(redSquare);
@@ -387,11 +433,18 @@ void CreateGuiInterface(Program* GuiProgram)
 	guiManager.addElement(guiSecondWindow);
 	guiManager.addElement(guiWindow);
 	guiManager.addElement(guiLittleButton);
+	guiManager.addElement( guiSecondLittleButton );
 	//guiManager.addElement(guiWhitePlank);
 
 	guiManager.addLinkToEventQueue( &GUIQueue );
 
-
+    redSquare->onClickHideEvent = hideWindow;
+	redSecondSquare->onClickHideEvent = hideWindow;
+	guiWhitePlank->onClickEvent = onButton1Click;
+	guiSecondWhitePlank->onClickEvent = onButton1Click;
+	//guiLittleButton->onClickEvent = onButton2Click;
+	guiLittleButton->onClickAllEvent = onButton2Click;
+	guiSecondLittleButton->onClickUnhideAll = unHideWindows;
 }
 
 
